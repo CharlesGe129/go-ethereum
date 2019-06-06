@@ -1,7 +1,8 @@
 class Block:
-    def __init__(self, height, hash_value, parent, peer=None):
+    def __init__(self, height, hash_value, b_type, parent, peer=None):
         self.height = height
         self.hash_value = hash_value
+        self.b_type = b_type
         self.parent = parent
         self.child = list()
         self.peer = peer
@@ -24,8 +25,11 @@ class Block:
         else:
             return None
 
+    def get_type(self):
+        return self.b_type
+
     def show(self):
-        print(f"self={self.hash_value}, parent={self.get_parent_hash()}", end='')
+        print(f"self={self.hash_value}, type={self.b_type}, parent={self.get_parent_hash()}", end='')
 
 
 class ForkedChain:

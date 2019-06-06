@@ -225,4 +225,5 @@ if __name__ == '__main__':
     # since saved canonical blocks stops at 6701076, we start at 6701077
     # aws blocks height: 6355788 - 7121327
     # ali: 6601250 - 7280022
-    iteration(7268678, '../records/blocks/canonical/')
+    # iteration(7420458, '../records/blocks/canonical/')
+    iteration(6549581, '../records/blocks/canonical/') # end at 6601250

@@ -1,10 +1,49 @@
 # 把所有fork读到内存  根据height和hash去找
 # 如果parent是fork，继续往上找；如果parent是canonical，这条forked chain就到头了；如果找不到parent，就报错
+
+#======================================
+# first, build the tree
+#   load all blocks including canonical ones into the tree
+#   canonical is the main branch
+#   each block has the type indicating canonical (c), uncle (u), reorged (r), or discard (d).
+#   in practise, at first, types are canonical and non canonical,
+#   since before analyze data, we don't know if they are uncle, reorged or discard.
+#   so, canonical => type c, non canonical => type n
+#   EX:
+#   #1, self=A, type = c, parent=None
+#   #2, self=B, type = c, parent=A => self=C, type = u, parent=A
+#   #3, self=D, type = c, parent=B => self=E, type = u, parent=C => self=F, type = d, parent=C
+#
+# fb_dict[branch_start_height] = forked_branch
+# forked branch dictionary stores all forked chains
+# key: head height of the forked chain, which is always a canonical block height
+# value: customized object forked_chain
+#
+# second, customized DFS checks branches
+#   if canonical node peer number >= 1 or say more than 2 nodes at same height,
+#       start DFS search from parent node, which is the local root
+#       while this_parent.has_child:
+#           current_forked_chain.add(child)
+#           this_parent = child
+#           (also, peer forked branches belong to this forked chain)
+#       when reach leaf (the last block on this branch), add this branch to fb_dict
+#       fb_dict[local_root] = current_forked_chain
+#
+# third, analyze forked branches
+#   sort forked branches by tree depth
+#       find the longest branch and branches greater than 1
+#   sort forked blocks by miner
+#       indicate which miners got uncles and un-rewarded blocks
+#   etc
+#======================================
+
 import os
 import sys
+from analysis_tool_python.forked_chain.forked_chain import ForkedChain, Block
+import collections
 
-AWS_BLOCKS_PATH = '/Users/Jinyue/Desktop/UC_Davis/EJ_Ethereum/Ethereum_records/aws/blocks'
-CANONICAL_PATH = '/Users/Jinyue/Desktop/UC_Davis/EJ_Ethereum/Ethereum_records/Canonical_blocks'
+AWS_BLOCKS_PATH = '../../records/blocks/aws'
+CANONICAL_PATH = '../../records/blocks/canonical'
 # https://etherscan.io/block/0xb429b0bad8319d6b0835c57484074d7dc95cb95dd11d00596a2090e9b3271b71/f
 # end with 'f' -> forked
 
@@ -22,6 +61,47 @@ forks_length = {}
 # forks_length[hash] = length
 # this dict records the forked block length; it back-counts until reaching canonical chain.
 # length 1 means the forked block's parent is a canonical block
+
+
+class BlockTreeBuilder:
+    def __init__(self):
+        self.tree = ForkedChain
+
+    def load_blocks(self, folder_path, block_type):
+        for file_name in os.listdir(folder_path):
+            if file_name.endswith('.txt'):
+                # print(f"checking {canonical_path}/{file_name}")
+                # print('loading file: ', file_name)
+                with open(folder_path + '/' + file_name) as f:
+                    while True:
+                        line = f.readline()
+                        if not line:
+                            break
+                        if line.__contains__('parent'):
+                            # print(line)
+                            cur_height, cur_hash_value, cur_parent_hash, cur_uncle_hash = self.parse(line)
+                            cur_block = Block(cur_height, cur_hash_value, block_type, )
+                            canonical_blocks[cur_height] = cur_block
+
+    def parse(self, line):
+        '''
+        this func parses line content to block object
+        :parameter
+        line: block information in one line
+
+        :return block object
+        '''
+        height = line.split('number=')[1].split(',')[0]
+        hash_value = line.split('Block Hash=')[1].split(',')[0]
+        parent_hash = line.split('parentHash=')[1].split(',')[0]
+        uncle_hash = line.split('uncleHash=')[1].split(',')[0]
+        return height, hash_value, parent_hash, uncle_hash
+
+    def run(self):
+        self.load_blocks(CANONICAL_PATH)
+        self.load_blocks(AWS_BLOCKS_PATH)
+
+
 
 def load_blocks_in_one_file(blocks_path, file):
     '''block height,
@@ -150,23 +230,31 @@ def get_parent_block(cur_height, parent_hash):
 
 
 if __name__ == '__main__':
-    read_data(AWS_BLOCKS_PATH)
+    # read_data(AWS_BLOCKS_PATH)
     # print('all block size: ', sys.getsizeof(all_blocks))
-    for height, blocks in all_blocks.items():
-        if len(blocks) > 1:
-            temp_set = set()
-            for b in blocks:
-                # print(b['hash'])
-                temp_set.add(b['hash'])
-            if len(temp_set) >= 5:
-                print('height: ', height)
-                print('blocks set: ', temp_set)
-                print('blocks: ', blocks)
-                print('len blocks set: ', len(temp_set) , "\n")
-    # load_canonical(CANONICAL_PATH)
-    # for height, block in canonical_blocks.items():
-    #     print('height: ', height)
-    #     print('block: ', block)
+    # for height, blocks in all_blocks.items():
+    #     if len(blocks) > 1:
+    #         temp_set = set()
+    #         for b in blocks:
+    #             print(b['hash'])
+                # temp_set.add(b['hash'])
+            # if len(temp_set) >= 5:
+            #     print('height: ', height)
+            #     print('blocks set: ', temp_set)
+            #     print('blocks: ', blocks)
+            #     print('len blocks set: ', len(temp_set) , "\n")
+    load_canonical(CANONICAL_PATH)
+    od = collections.OrderedDict(sorted(canonical_blocks.items()))
+    first_height = 6355788
+    count = 0
+    for height, block in od.items():
+        print('height: ', height)
+        print('block: ', block)
+        print('type height: ', type(height))
+        if first_height + count != int(height):
+            print('!!!!')
+            break
+        count += 1
     # print('canonical block size: ', sys.getsizeof(canonical_blocks))
 
     # filter general dataset, delete canonical blocks from it
