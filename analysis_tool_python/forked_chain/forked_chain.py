@@ -4,6 +4,7 @@ class Block:
         self.hash_value = hash_value
         self.b_type = b_type
         self.parent = parent
+        self.parent_hash = ""
         self.child = list()
         self.peer = peer
 
