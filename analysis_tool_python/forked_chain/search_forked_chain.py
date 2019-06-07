@@ -17,7 +17,7 @@ class CheckForkedChain:
             cur_height = heights[i_height]
             if cur_height in self.blocks.blocks_canonical:
                 # 如果这个高度没有canonical，不做
-                canonical_hash = self.blocks.blocks_canonical[cur_height]
+                canonical_hash = self.blocks.blocks_canonical[cur_height].hash_value
                 potential_blocks = self.blocks.blocks_broadcast[cur_height]
                 for block in potential_blocks:
                     if block.hash_value == canonical_hash:
@@ -72,7 +72,11 @@ class CheckForkedChain:
         r.blocks = blocks
         r.start(True)
 
-
+        blocks.blocks_broadcast = {
+            1: [blockA],
+            2: [blockB, blockC],
+            3: [blockD, blockE, blockF],
+        }
         blocks.blocks_canonical = {
             1: blockA,
             2: blockB,
