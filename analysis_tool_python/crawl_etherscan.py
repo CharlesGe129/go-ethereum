@@ -226,4 +226,4 @@ if __name__ == '__main__':
     # aws blocks height: 6355788 - 7121327
     # ali: 6601250 - 7280022
     # iteration(7420458, '../records/blocks/canonical/')
-    iteration(6549581, '../records/blocks/canonical/') # end at 6601250
+    iteration(6611452, '../records/blocks/canonical/') # end at 6601250
