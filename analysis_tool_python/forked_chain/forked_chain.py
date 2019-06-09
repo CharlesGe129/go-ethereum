@@ -1,12 +1,17 @@
 class Block:
-    def __init__(self, height, hash_value, b_type, parent, peer=None):
+    def __init__(self, height, hash_value, block_type, parent=None, peer=None):
         self.height = height
         self.hash_value = hash_value
-        self.b_type = b_type
+        self.b_type = block_type
         self.parent = parent
         self.parent_hash = ""
         self.child = list()
         self.peer = peer
+
+    def set_parent(self, parent):
+        self.parent = parent
+        if parent:
+            self.parent_hash = parent.get_hash()
 
     def add_child(self, child):
         self.child.append(child)
@@ -14,9 +19,11 @@ class Block:
     def update_peer(self, peer):
         self.peer = peer
 
+    # get parent
     def has_parent(self):
         return self.parent
 
+    # get peer
     def has_peer(self):
         return self.peer
 
@@ -28,6 +35,12 @@ class Block:
 
     def get_type(self):
         return self.b_type
+
+    def get_hash(self):
+        return self.hash_value
+
+    def get_height(self):
+        return self.height
 
     def show(self):
         print(f"self={self.hash_value}, type={self.b_type}, parent={self.get_parent_hash()}", end='')

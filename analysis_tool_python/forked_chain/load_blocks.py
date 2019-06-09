@@ -9,6 +9,7 @@ PATH_ALI_BLOCK = "../../records/blocks/ali/"
 PATH_AWS_BLOCK = "../../records/blocks/aws/"
 PATH_CANONICAL = '../../records/blocks/canonical/'
 
+
 class Blocks:
     def __init__(self):
         self.blocks_broadcast = dict()  # key=height, value=[]blocks
@@ -18,6 +19,14 @@ class Blocks:
         self.load_blocks_broadcast()
         self.load_blocks_canonical()
 
+# =====================get=======================================
+    def get_c_block(self, height):
+        '''get canonical block based on provided height'''
+        pass
+
+    def get_b_blocks(self, height):
+        '''get broadcast blocks based on provided height'''
+        pass
 # =====================broadcast=======================================
 
     def load_blocks_broadcast(self):
