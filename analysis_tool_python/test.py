@@ -12,11 +12,20 @@ import os
 #
 # read_data('../records/blocks/aws/')
 
+# i = 0
+# while i < 20:
+#     if i == 15:
+#         break
+#     if i == 3:
+#         continue
+#     print(i)
+#     i += 1
+
+test_dict = dict()
+test_dict[0] = 'z'
+test_dict[1] = 'a'
+test_dict[2] = 'b'
 i = 0
-while i < 20:
-    if i == 15:
-        break
-    if i == 3:
-        continue
-    print(i)
+while i in test_dict:
+    print(i, ' ', test_dict[i])
     i += 1

@@ -20,13 +20,20 @@ class Blocks:
         self.load_blocks_canonical()
 
 # =====================get=======================================
-    def get_c_block(self, height):
-        '''get canonical block based on provided height'''
-        pass
+#     def get_block(self, height, blocks):
+#         """
+#         get broadcast or canonical block based on provided height
+#         :parameter
+#         height: int
+#             wanted blocks' height
+#         blocks: dict
+#             broadcast or canonical blocks
+#
+#         :return
+#         list of blocks
+#         """
+#         pass
 
-    def get_b_blocks(self, height):
-        '''get broadcast blocks based on provided height'''
-        pass
 # =====================broadcast=======================================
 
     def load_blocks_broadcast(self):
