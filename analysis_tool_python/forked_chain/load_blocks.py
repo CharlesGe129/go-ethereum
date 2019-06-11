@@ -1,13 +1,11 @@
 import os
-from forked_chain import Block
+from forked_chain.forked_chain import Block
 
-# Chs's path
-# PATH_ALI_BLOCK = "../../records/blocks/ali/block/"
-# PATH_AWS_BLOCK = "../../records/blocks/aws/blocks/"
-# J's path
-PATH_ALI_BLOCK = "../../records/blocks/ali/"
-PATH_AWS_BLOCK = "../../records/blocks/aws/"
-PATH_CANONICAL = '../../records/blocks/canonical/'
+
+PATH_BLOCK_FOLDER = "../../records/blocks/"
+PATH_ALI_BLOCK = PATH_BLOCK_FOLDER + "ali/"
+PATH_AWS_BLOCK = PATH_BLOCK_FOLDER + "aws/"
+PATH_CANONICAL = PATH_BLOCK_FOLDER + "canonical/"
 
 
 class Blocks:
@@ -40,7 +38,7 @@ class Blocks:
         for folder in [PATH_ALI_BLOCK, PATH_AWS_BLOCK]:
             for filename in os.listdir(folder):
                 if filename.endswith(".txt"):
-                    self.load_file(f"{folder}{filename}")
+                    self.load_file(f"{folder}{filename}", self.insert)
 
     def insert(self, block):
         height = block.height
@@ -61,21 +59,28 @@ class Blocks:
                 return True
         return False
 
-    def load_file(self, path):
+    @staticmethod
+    def load_file(path, func_insert):
         count = 0
         with open(path) as f:
             while True:
                 line = f.readline()
+                while line.startswith("0x"):
+                    line = f.readline()
                 if not line:
                     break
                 f.readline()
                 line = line.split(']')[-1].strip('\n')
-                hash_value = line.split('Hash=')[1].split(', ')[0]
-                parent_hash = line.split('parentHash=')[1].split(', ')[0]
-                uncle_hash = line.split('uncleHash=')[1].split(', ')[0]
-                height = line.split('number=')[1].split(', ')[0]
-                timestamp = line.split('timestamp=')[1].split(', ')[0]
-                self.insert(Block(height, hash_value, None, None))
+                try:
+                    hash_value = line.split('Hash=')[1].split(', ')[0]
+                    parent_hash = line.split('parentHash=')[1].split(', ')[0]
+                    uncle_hash = line.split('uncleHash=')[1].split(', ')[0]
+                    height = line.split('number=')[1].split(', ')[0]
+                    timestamp = line.split('timestamp=')[1].split(', ')[0]
+                    func_insert(Block(height, hash_value, None, None))
+                except Exception as e:
+                    print(path)
+                    print(e)
                 count += 1
         print(f"file={path}, count={count}")
 
@@ -84,12 +89,13 @@ class Blocks:
     def load_blocks_canonical(self):
         for filename in os.listdir(PATH_CANONICAL):
             if filename.endswith('.txt'):
-                self.c_load_file(f"{PATH_CANONICAL}{filename}")
+                self.load_file(f"{PATH_CANONICAL}{filename}", self.c_insert)
 
     def c_insert(self, block):
         height = block.height
         self.blocks_canonical[height] = block
 
+    # 这个应该跟load_file()差不多，我觉得两个函数没啥区别就做成了一个
     def c_load_file(self, path):
         count = 0
         with open(path) as f:
