@@ -1,10 +1,10 @@
 class Block:
-    def __init__(self, height, hash_value, block_type, parent=None, peer=None):
+    def __init__(self, height, hash_value, block_type, parent=None, parent_hash=None, peer=None):
         self.height = height
         self.hash_value = hash_value
         self.b_type = block_type
         self.parent = parent
-        self.parent_hash = ""
+        self.parent_hash = parent_hash
         self.child = list()
         self.peer = peer
 
@@ -12,6 +12,8 @@ class Block:
         self.parent = parent
         if parent:
             self.parent_hash = parent.get_hash()
+        else:
+            self.parent_hash = ""
 
     def add_child(self, child):
         self.child.append(child)

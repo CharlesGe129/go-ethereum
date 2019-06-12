@@ -1,5 +1,5 @@
-from analysis_tool_python.forked_chain.load_blocks import Blocks
-from analysis_tool_python.forked_chain.forked_chain import Block
+from load_blocks import Blocks
+from forked_chain import Block
 
 # TODO: Dynamic Program question?
 
@@ -86,6 +86,13 @@ class CheckForkedChain:
         r.blocks = blocks
         r.start(True)
 
+    def test_2(self):
+        r = CheckForkedChain()
+        blocks = Blocks()
+        blocks.start()
+        r.blocks = blocks
+        r.start(True)
+
 
 if __name__ == '__main__':
-    CheckForkedChain().test()
+    CheckForkedChain().test_2()

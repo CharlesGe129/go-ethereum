@@ -1,5 +1,5 @@
 import os
-from forked_chain.forked_chain import Block
+from forked_chain import Block
 
 
 PATH_BLOCK_FOLDER = "../../records/blocks/"
@@ -43,13 +43,13 @@ class Blocks:
     def insert(self, block):
         height = block.height
         if height not in self.blocks_broadcast:
-            self.blocks_broadcast[height] = list()
+            self.blocks_broadcast[int(height)] = list()
         elif self.contains(block):
             return
-        self.blocks_broadcast[height].append(block)
+        self.blocks_broadcast[int(height)].append(block)
 
     def contains(self, new_block):
-        height = new_block.height
+        height = int(new_block.height)
         hash_value = new_block.hash_value
         if height not in self.blocks_broadcast:
             return False
@@ -77,7 +77,7 @@ class Blocks:
                     uncle_hash = line.split('uncleHash=')[1].split(', ')[0]
                     height = line.split('number=')[1].split(', ')[0]
                     timestamp = line.split('timestamp=')[1].split(', ')[0]
-                    func_insert(Block(height, hash_value, None, None))
+                    func_insert(Block(int(height), hash_value, None, None))
                 except Exception as e:
                     print(path)
                     print(e)
@@ -93,7 +93,7 @@ class Blocks:
 
     def c_insert(self, block):
         height = block.height
-        self.blocks_canonical[height] = block
+        self.blocks_canonical[int(height)] = block
 
     # 这个应该跟load_file()差不多，我觉得两个函数没啥区别就做成了一个
     def c_load_file(self, path):
@@ -116,7 +116,7 @@ class Blocks:
                 uncle_hash = line.split('uncleHash=')[1].split(', ')[0]
                 height = line.split('number=')[1].split(', ')[0]
                 timestamp = line.split('timestamp=')[1].split(', ')[0]
-                self.c_insert(Block(height, hash_value, None, None))
+                self.c_insert(Block(int(height), hash_value, None, None))
                 count += 1
         print(f"file={path}, count={count}\n")
 
