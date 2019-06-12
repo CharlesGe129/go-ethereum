@@ -77,7 +77,7 @@ class Blocks:
                     uncle_hash = line.split('uncleHash=')[1].split(', ')[0]
                     height = line.split('number=')[1].split(', ')[0]
                     timestamp = line.split('timestamp=')[1].split(', ')[0]
-                    func_insert(Block(int(height), hash_value, None, None))
+                    func_insert(Block(int(height), hash_value, None, parent_hash, None))
                 except Exception as e:
                     print(path)
                     print(e)

@@ -95,4 +95,6 @@ class CheckForkedChain:
 
 
 if __name__ == '__main__':
-    CheckForkedChain().test_2()
+    # CheckForkedChain().test_2()
+    r = CheckForkedChain()
+    r.start()
