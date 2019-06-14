@@ -25,7 +25,10 @@ test_dict = dict()
 test_dict[0] = 'z'
 test_dict[1] = 'a'
 test_dict[2] = 'b'
+test_dict[4] = 'd'
 i = 0
-while i in test_dict:
-    print(i, ' ', test_dict[i])
+while i <= 4:
+    if i not in test_dict:
+        print(i)
+        break
     i += 1

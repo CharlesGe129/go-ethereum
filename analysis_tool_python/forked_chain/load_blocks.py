@@ -69,8 +69,14 @@ class Blocks:
                     line = f.readline()
                 if not line:
                     break
-                f.readline()
+                # line = f.readline()
                 line = line.split(']')[-1].strip('\n')
+                if path.__contains__('2018-09-20'):
+                    # print(line)
+                    if line.__contains__('number=6355816'):
+                        print('found number=6355816')
+                # if line.__contains__('number=6355816'):
+                #     print('found 6355816')
                 try:
                     hash_value = line.split('Hash=')[1].split(', ')[0]
                     parent_hash = line.split('parentHash=')[1].split(', ')[0]
@@ -78,6 +84,8 @@ class Blocks:
                     height = line.split('number=')[1].split(', ')[0]
                     timestamp = line.split('timestamp=')[1].split(', ')[0]
                     func_insert(Block(int(height), hash_value, None, parent_hash, None))
+                    # if int(height) == 6355816:
+                    #     print('found: 6355816')
                 except Exception as e:
                     print(path)
                     print(e)
@@ -135,8 +143,19 @@ class Blocks:
                 for b in block_list:
                     print(b.show(), end=' ')
 
+    def canonical_integrity_test(self):
+        '''check if canonical blocks are downloaded at all heights'''
+        cur_height = 6355788
+        last_height = 7415442
+        while cur_height <= last_height:
+            if cur_height not in self.blocks_canonical:
+                print(cur_height)
+                break
+            cur_height += 1
+
 
 if __name__ == '__main__':
     test_b = Blocks()
     test_b.start()
-    test_b.show()
+    # test_b.show()
+    test_b.canonical_integrity_test()
