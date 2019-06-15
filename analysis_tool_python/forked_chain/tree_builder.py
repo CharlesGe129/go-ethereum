@@ -42,11 +42,13 @@ class TreeBuilder:
         # first, build main relationship based on canonical chain
         # TODO: BUG!!!!! forked chain always add height 6355789 as the next block
         while height_index < len(heights)-1:
+            print('===================================')
             print('height index=', height_index)
             cur_block = self.bc_blocks.blocks_canonical.get(heights[height_index])
             next_block = self.bc_blocks.blocks_canonical.get(heights[height_index+1])
-            print('cur block=', cur_block)
-            print('next block=', next_block)
+            print('cur block=', cur_block.show())
+            print('next block=', next_block.show())
+            print('===================================')
             cur_block.add_child(next_block)
             next_block.set_parent(cur_block)
             self.forked_chain.add_block(cur_block)
@@ -56,6 +58,7 @@ class TreeBuilder:
         self.forked_chain.show()
 
         # second, build peers and children based on broadcast blocks
+        # TODO: iterate to update broadcast blocks as peers  
 
 
 
