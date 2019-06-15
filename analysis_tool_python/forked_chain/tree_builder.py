@@ -58,7 +58,7 @@ class TreeBuilder:
         self.forked_chain.show()
 
         # second, build peers and children based on broadcast blocks
-        # TODO: iterate to update broadcast blocks as peers  
+        # TODO: iterate to update broadcast blocks as peers
 
 
 
