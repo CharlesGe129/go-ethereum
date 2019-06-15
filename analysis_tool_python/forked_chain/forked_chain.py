@@ -9,11 +9,12 @@ class Block:
         self.peer = peer
 
     def set_parent(self, parent):
-        self.parent = parent
         if parent:
             self.parent_hash = parent.get_hash()
+            parent.add_child(self)
         else:
             self.parent_hash = ""
+        self.parent = parent
 
     def add_child(self, child):
         self.child.append(child)
@@ -47,6 +48,8 @@ class Block:
     def show(self):
         print(f"self={self.hash_value}, parent={self.get_parent_hash()}", end='')
 
+    def show_all(self):
+        print(f"height={self.height}, hash={self.hash_value}, parent={self.parent}, parent hash={self.parent_hash}, children={self.child}, peer={self.peer}")
 
 class ForkedChain:
     def __init__(self):
@@ -79,7 +82,8 @@ class ForkedChain:
             print(f"#{height}, ", end='')
             block = self.chain[height]
             while block:
-                block.show()
+                # block.show()
+                block.show_all()
                 print(" => " if block.peer else "", end='')
                 block = block.peer
             print()

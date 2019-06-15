@@ -34,16 +34,38 @@ class TreeBuilder:
         self.build_relationship()
 
     def build_relationship(self):
-        cur_height = 6355788  # the global root in canonical
-        next_height = cur_height + 1
+        heights = sorted(self.bc_blocks.blocks_canonical.keys())
+        first_block = None
+        second_block = None
+        height_index = 0
+
+        # first, build main relationship based on canonical chain
+        # TODO: BUG!!!!! forked chain always add height 6355789 as the next block
+        while height_index < len(heights)-1:
+            print('height index=', height_index)
+            cur_block = self.bc_blocks.blocks_canonical.get(heights[height_index])
+            next_block = self.bc_blocks.blocks_canonical.get(heights[height_index+1])
+            print('cur block=', cur_block)
+            print('next block=', next_block)
+            cur_block.add_child(next_block)
+            next_block.set_parent(cur_block)
+            self.forked_chain.add_block(cur_block)
+            self.forked_chain.add_block(next_block)
+            height_index += 1
+
+        self.forked_chain.show()
+
+        # second, build peers and children based on broadcast blocks
+
+
 
         # while the children height is not empty, do the iteration
-        while next_height in self.bc_blocks.blocks_broadcast:
-            # read blocks in two heights
-            cur_height_canonical_block = self.bc_blocks.blocks_canonical[cur_height]
-            next_height_canonical_block = self.bc_blocks.blocks_canonical[next_height]
-            cur_height_broadcast_blocks = self.bc_blocks.blocks_broadcast[cur_height]
-            next_height_broadcast_blocks = self.bc_blocks.blocks_broadcast[next_height]
+        # while next_height in self.bc_blocks.blocks_broadcast:
+        #     # read blocks in two heights
+        #     cur_height_canonical_block = self.bc_blocks.blocks_canonical[cur_height]
+        #     next_height_canonical_block = self.bc_blocks.blocks_canonical[next_height]
+        #     cur_height_broadcast_blocks = self.bc_blocks.blocks_broadcast[cur_height]
+        #     next_height_broadcast_blocks = self.bc_blocks.blocks_broadcast[next_height]
             # update vertical relationship
             # TODO: update
             # update horizontal relationship
