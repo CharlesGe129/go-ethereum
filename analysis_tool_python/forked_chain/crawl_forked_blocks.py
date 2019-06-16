@@ -7,33 +7,50 @@ Soup = BeautifulSoup
 class EthereumForkedBlocks:
     def __init__(self):
         self.raw_url = 'https://etherscan.io/blocks_forked?ps=100&p='
-        self.table_head = []
 
     def start(self):
-        self.get_table_head(1)
+        # TODO: iterate to crawl all forked blocks pages; now it is ok to crawl one page
         forked_page = self.load_page(1)
-        # get table head from first page
         self.extract_forked_blocks(forked_page)
 
     def load_page(self, page_number):
         cur_url = self.raw_url + str(page_number)
         return requests.get(cur_url).content
 
-    def get_table_head(self, page_number):
-        forked_page = self.load_page(page_number)
-        soup = BeautifulSoup(forked_page, 'html.parser')
-        table_head = soup.find('thead', {'class': 'thead-light'})
-        head_content = table_head.find_all('th')
-        for h in head_content:
-            self.table_head.append(h.string)
-
     def extract_forked_blocks(self, page_content):
         soup = BeautifulSoup(page_content, 'html.parser')
         forked_table = soup.find('table', {'class':'table table-hover'})
-        print(forked_table)
-        print('===============')
-        
+        table_body = forked_table.find('tbody')
+        rows = table_body.find_all('tr')
+        for r in rows:
+            self.extract_one_row(r)
 
+    def extract_one_row(self, row):
+        row_content = list()
+        # height
+        row_content.append(row.find_all('td')[0].string)
+        # date time: when the block is found
+        row_content.append(row.find_all('td')[1].find('span')['title'])
+        # Txn
+        row_content.append(row.find_all('td')[2].string)
+        # Uncles
+        row_content.append(row.find_all('td')[3].string)
+        # miner address
+        row_content.append(row.find_all('td')[4].find('a')['href'].split('address/')[1])
+        # miner name
+        row_content.append(row.find_all('td')[4].find('a').string)
+        # Gas Limit
+        row_content.append(row.find_all('td')[5].string)
+        # Difficulty
+        row_content.append(row.find_all('td')[6].string)
+        # Reward
+        if len(row.find_all('td')[7].contents) > 1:
+            row_content.append(row.find_all('td')[7].contents[0] + '.' + row.find_all('td')[7].contents[2])
+        else:
+            row_content.append(row.find_all('td')[7].contents[0])
+        # ReorgDepth
+        row_content.append(row.find_all('td')[8].string)
+        # print(row_content)
 
     def save_to_file(self):
         pass
