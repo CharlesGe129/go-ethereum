@@ -1,7 +1,8 @@
 from load_blocks import Blocks
 from forked_chain import Block
 
-# TODO: Dynamic Program question?
+# TODO: collect each forked chain with detailed blocks
+
 
 class CheckForkedChain:
     def __init__(self):
