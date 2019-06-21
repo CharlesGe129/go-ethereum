@@ -1177,9 +1177,18 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 			hashValue := block.Hash()
 			parentHash := block.ParentHash()
 			uncleHash := block.UncleHash()
-			contentToRecord := "[Inserted]Block Hash=" + common.ToHex((&hashValue)[:]) +
-				", parentHash=" + common.ToHex((&parentHash)[:]) + ", uncleHash=" + common.ToHex((&uncleHash)[:]) +
-				", number=" + block.Number().String() + ", timestamp=" + time.Unix(block.Time().Int64(), 0).String() + "\n"
+			contentToRecord :=
+				"[Inserted]Block Hash=" + common.ToHex((&hashValue)[:]) +
+				", parentHash=" + common.ToHex((&parentHash)[:]) +
+				", uncleHash=" + common.ToHex((&uncleHash)[:]) +
+				", number=" + block.Number().String() +
+				", miner=" + block.Header().Coinbase.String() +
+				", timestamp=" + time.Unix(block.Time().Int64(), 0).String() +
+				", uncles=" + len(block.Uncles()) +
+				", txs=" + len(block.Transactions()) +
+				", gasUsed=" + block.GasUsed() +
+				", gasLimit=" + block.GasUsed() +
+				", size=" + block.Size() + "\n"
 			for _, tx := range block.Transactions() {
 				hashValue := tx.Hash()
 				contentToRecord += common.ToHex((&hashValue)[:]) + ", "
@@ -1201,9 +1210,18 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 			hashValue := block.Hash()
 			parentHash := block.ParentHash()
 			uncleHash := block.UncleHash()
-			contentToRecord := "[Inserted]Block Hash=" + common.ToHex((&hashValue)[:]) +
-				", parentHash=" + common.ToHex((&parentHash)[:]) + ", uncleHash=" + common.ToHex((&uncleHash)[:]) +
-				", number=" + block.Number().String() + ", timestamp=" + time.Unix(block.Time().Int64(), 0).String() + "\n"
+			contentToRecord :=
+				"[Inserted]Block Hash=" + common.ToHex((&hashValue)[:]) +
+					", parentHash=" + common.ToHex((&parentHash)[:]) +
+					", uncleHash=" + common.ToHex((&uncleHash)[:]) +
+					", number=" + block.Number().String() +
+					", miner=" + block.Header().Coinbase.String() +
+					", timestamp=" + time.Unix(block.Time().Int64(), 0).String() +
+					", uncles=" + len(block.Uncles()) +
+					", txs=" + len(block.Transactions()) +
+					", gasUsed=" + block.GasUsed() +
+					", gasLimit=" + block.GasUsed() +
+					", size=" + block.Size() + "\n"
 			for _, tx := range block.Transactions() {
 				hashValue := tx.Hash()
 				contentToRecord += common.ToHex((&hashValue)[:]) + ", "
