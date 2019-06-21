@@ -5,13 +5,16 @@ from datetime import datetime
 Soup = BeautifulSoup
 
 class EthereumForkedBlocks:
+    # row written in file:
+    # height, data time, Txn, Uncles, miner address, miner name, Gas limit, Difficulty, Reward
     def __init__(self):
         self.raw_url = 'https://etherscan.io/blocks_forked?ps=100&p='
 
     def start(self):
-        # TODO: iterate to crawl all forked blocks pages; now it is ok to crawl one page
-        forked_page = self.load_page(1)
-        self.extract_forked_blocks(forked_page)
+        for i in range(1, 885):
+            print(f'Loading page {i}')
+            forked_page = self.load_page(i)
+            self.extract_forked_blocks(forked_page)
 
     def load_page(self, page_number):
         cur_url = self.raw_url + str(page_number)
@@ -19,7 +22,7 @@ class EthereumForkedBlocks:
 
     def extract_forked_blocks(self, page_content):
         soup = BeautifulSoup(page_content, 'html.parser')
-        forked_table = soup.find('table', {'class':'table table-hover'})
+        forked_table = soup.find('table', {'class': 'table table-hover'})
         table_body = forked_table.find('tbody')
         rows = table_body.find_all('tr')
         for r in rows:
@@ -50,10 +53,12 @@ class EthereumForkedBlocks:
             row_content.append(row.find_all('td')[7].contents[0])
         # ReorgDepth
         row_content.append(row.find_all('td')[8].string)
-        # print(row_content)
+        self.save_to_file(row_content)
 
-    def save_to_file(self):
-        pass
+    def save_to_file(self, row_content):
+        with open("forked_blocks_etherscan.txt", 'a') as f:
+            f.write(",".join(row_content))
+            f.write("\n")
 
 
 if __name__ == '__main__':
