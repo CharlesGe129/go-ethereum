@@ -643,6 +643,25 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		request.Block.ReceivedAt = msg.ReceivedAt
 		request.Block.ReceivedFrom = p
 
+		block := request.Block
+		hashValue := block.Hash()
+		parentHash := block.ParentHash()
+		uncleHash := block.UncleHash()
+		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+			"number=%s, miner=%s, uncleNum=%d, " +
+			"txNum=%d, gasUsed=%d, gasLimit=%d, " +
+			"size=%s, timestamp=%s\n",
+			common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
+			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
+			block.Size().String(), time.Unix(block.Time().Int64(), 0).String())
+		for _, tx := range block.Transactions() {
+			hashValue := tx.Hash()
+			contentToRecord += common.ToHex((&hashValue)[:]) + ", "
+		}
+		recordBlock(contentToRecord, time.Now().String())
+
+
 		// Mark the peer as owning the block and schedule it for import
 		p.MarkBlock(request.Block.Hash())
 		pm.fetcher.Enqueue(p.id, request.Block)
@@ -711,6 +730,12 @@ func recordTx(content string, timeNow string) {
 	timeList := strings.Split(timeNow, " ")
 	timeNow = timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
 	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
+	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
+}
+
+func recordBlock(content string, timeNow string) {
+	timeNow = strings.Split(timeNow, " ")[0]
+	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
 	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
 }
 
