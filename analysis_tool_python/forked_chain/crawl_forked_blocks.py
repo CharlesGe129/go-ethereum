@@ -56,10 +56,16 @@ class EthereumForkedBlocks:
         self.save_to_file(row_content)
 
     def save_to_file(self, row_content):
-        with open("forked_blocks_etherscan.txt", 'a') as f:
+        with open("../records/forked_blocks_etherscan.txt", 'a') as f:
             f.write(",".join(row_content))
             f.write("\n")
 
+    def load_official(self, official_file_path):
+        with open(official_file_path) as f:
+            while True:
+                line = f.readline()
+                if not line:
+                    break
 
 if __name__ == '__main__':
     test_efb = EthereumForkedBlocks()

@@ -656,7 +656,34 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 			block.Size().String(), time.Unix(block.Time().Int64(), 0).String())
 		for _, tx := range block.Transactions() {
+			// TODO: 抓取tx的内容 需都添加在此
+
+			//func (m Message) From() common.Address { return m.from }
+			//func (m Message) To() *common.Address  { return m.to }
+			//func (m Message) GasPrice() *big.Int   { return m.gasPrice }
+			//func (m Message) Value() *big.Int      { return m.amount }
+			//func (m Message) Gas() uint64          { return m.gasLimit }
+			//func (m Message) Nonce() uint64        { return m.nonce }
+			//func (m Message) Data() []byte         { return m.data }
+			//func (m Message) CheckNonce() bool     { return m.checkNonce }
+
+			//	Payload      []byte          `json:"input"    gencodec:"required"`
+			//
+			//	// Signature values
+			//	V *big.Int `json:"v" gencodec:"required"`
+			//	R *big.Int `json:"r" gencodec:"required"`
+			//	S *big.Int `json:"s" gencodec:"required"`
+			//
+			// ChainID
+			// protected
+			// isProtectedV
+			// size
+			// cost
+			// len
+			//
+			tx_Content := fmt.Sprintf("Hash=%s, GasPrice=%s, GasLimit=%s, , Amount=%s, Value=%s, ")
 			hashValue := tx.Hash()
+
 			contentToRecord += common.ToHex((&hashValue)[:]) + ", "
 		}
 		recordBlock(contentToRecord, time.Now().String())
