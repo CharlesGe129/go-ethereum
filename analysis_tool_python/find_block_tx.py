@@ -47,6 +47,48 @@ def load_blocks_in_one_file(file_path):
             if not line:
                 break
 
+def read_two_blocks(file_path, c_file_path):
+    height = -1
+    txs = []
+    with open(file_path) as f:
+        while True:
+            line = f.readline()
+            if not line:
+                break
+            if line.startswith('['):
+                height = line.split('number=')[1].split(',')[0]
+                print(height)
+            else:
+                txs = line.split(',')
+                # print(txs)
+                go_through_canonical(c_file_path, txs)
+
+
+def check_one_canonical(c_file_path, txs):
+    current_height = -1
+    with open(c_file_path, 'r') as f:
+        while True:
+            line = f.readline()
+            if not line:
+                break
+            if line.startswith('['):
+                current_height = line.split('number=')[1].split(',')[0]
+            else:
+                for t in txs:
+                    if t.startswith('0x') and line.__contains__(t):
+                        print('File Path: ', c_file_path)
+                        print('Find TX in Canonical Height ', current_height)
+                        print('TX: ', t)
+
+
+def go_through_canonical(c_path, txs):
+    for filename in os.listdir(c_path):
+        if filename.endswith(".txt"):
+            print(f"checking {c_path}{filename}")
+            check_one_canonical(c_path+filename, txs)
+
+
 if __name__ == '__main__':
-    read_data(RECORD_PATH + '/blocks/ali/')
-    read_data(RECORD_PATH + '/blocks/aws/')
+    # read_data(RECORD_PATH + '/blocks/ali/')
+    # read_data(RECORD_PATH + '/blocks/aws/')
+    read_two_blocks(RECORD_PATH + '/two_blocks.txt', RECORD_PATH + '/blocks/canonical/')

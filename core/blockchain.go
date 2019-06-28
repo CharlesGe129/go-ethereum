@@ -1239,9 +1239,21 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 				block.Size().String(), time.Unix(block.Time().Int64(), 0).String())
+			//for _, tx := range block.Transactions() {
+			//	hashValue := tx.Hash()
+			//	contentToRecord += common.ToHex((&hashValue)[:]) + ", "
+			//}
 			for _, tx := range block.Transactions() {
-				hashValue := tx.Hash()
-				contentToRecord += common.ToHex((&hashValue)[:]) + ", "
+				v, r, s := tx.RawSignatureValues()
+				// Cost returns amount + gasprice * gaslimit.
+				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
+					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
+					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
+					"chainId=%v, protected=%v, size=%s, cost=%v\n",
+					tx.Hash().String(), tx.From(), tx.To().String(), tx.GasPrice(),
+					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+					tx.CheckNonce(), v, r, s,
+					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 			}
 			recordBlock(contentToRecord, time.Now().String())
 
