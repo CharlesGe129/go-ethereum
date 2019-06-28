@@ -1,4 +1,4 @@
-// Copyright 2016 The go-ethereum Authors
+// Copyright 2019 The go-ethereum Authors
 // This file is part of go-ethereum.
 //
 // go-ethereum is free software: you can redistribute it and/or modify
@@ -37,6 +37,9 @@ var (
 	solcFlag = flag.String("solc", "solc", "Solidity compiler to use if source builds are requested")
 	excFlag  = flag.String("exc", "", "Comma separated types to exclude from binding")
 
+	vyFlag    = flag.String("vy", "", "Path to the Ethereum contract Vyper source to build and bind")
+	vyperFlag = flag.String("vyper", "vyper", "Vyper compiler to use if source builds are requested")
+
 	pkgFlag  = flag.String("pkg", "", "Package name to generate the binding into")
 	outFlag  = flag.String("out", "", "Output file for the generated binding (default = stdout)")
 	langFlag = flag.String("lang", "go", "Destination language for the bindings (go, java, objc)")
@@ -46,11 +49,14 @@ func main() {
 	// Parse and ensure all needed inputs are specified
 	flag.Parse()
 
-	if *abiFlag == "" && *solFlag == "" {
-		fmt.Printf("No contract ABI (--abi) or Solidity source (--sol) specified\n")
+	if *abiFlag == "" && *solFlag == "" && *vyFlag == "" {
+		fmt.Printf("No contract ABI (--abi), Solidity source (--sol), or Vyper source (--vy) specified\n")
 		os.Exit(-1)
-	} else if (*abiFlag != "" || *binFlag != "" || *typFlag != "") && *solFlag != "" {
-		fmt.Printf("Contract ABI (--abi), bytecode (--bin) and type (--type) flags are mutually exclusive with the Solidity source (--sol) flag\n")
+	} else if (*abiFlag != "" || *binFlag != "" || *typFlag != "") && (*solFlag != "" || *vyFlag != "") {
+		fmt.Printf("Contract ABI (--abi), bytecode (--bin) and type (--type) flags are mutually exclusive with the Solidity (--sol) and Vyper (--vy) flags\n")
+		os.Exit(-1)
+	} else if *solFlag != "" && *vyFlag != "" {
+		fmt.Printf("Solidity (--sol) and Vyper (--vy) flags are mutually exclusive\n")
 		os.Exit(-1)
 	}
 	if *pkgFlag == "" {
@@ -63,8 +69,6 @@ func main() {
 		lang = bind.LangGo
 	case "java":
 		lang = bind.LangJava
-	case "objc":
-		lang = bind.LangObjC
 	default:
 		fmt.Printf("Unsupported destination language \"%s\" (--lang)\n", *langFlag)
 		os.Exit(-1)
@@ -75,7 +79,7 @@ func main() {
 		bins  []string
 		types []string
 	)
-	if *solFlag != "" || *abiFlag == "-" {
+	if *solFlag != "" || *vyFlag != "" || *abiFlag == "-" {
 		// Generate the list of types to exclude from binding
 		exclude := make(map[string]bool)
 		for _, kind := range strings.Split(*excFlag, ",") {
@@ -84,13 +88,21 @@ func main() {
 
 		var contracts map[string]*compiler.Contract
 		var err error
-		if *solFlag != "" {
+
+		switch {
+		case *solFlag != "":
 			contracts, err = compiler.CompileSolidity(*solcFlag, *solFlag)
 			if err != nil {
 				fmt.Printf("Failed to build Solidity contract: %v\n", err)
 				os.Exit(-1)
 			}
-		} else {
+		case *vyFlag != "":
+			contracts, err = compiler.CompileVyper(*vyperFlag, *vyFlag)
+			if err != nil {
+				fmt.Printf("Failed to build Vyper contract: %v\n", err)
+				os.Exit(-1)
+			}
+		default:
 			contracts, err = contractsFromStdin()
 			if err != nil {
 				fmt.Printf("Failed to read input ABIs from STDIN: %v\n", err)
@@ -102,7 +114,11 @@ func main() {
 			if exclude[strings.ToLower(name)] {
 				continue
 			}
-			abi, _ := json.Marshal(contract.Info.AbiDefinition) // Flatten the compiler parse
+			abi, err := json.Marshal(contract.Info.AbiDefinition) // Flatten the compiler parse
+			if err != nil {
+				fmt.Printf("Failed to parse ABIs from compiler output: %v\n", err)
+				os.Exit(-1)
+			}
 			abis = append(abis, string(abi))
 			bins = append(bins, contract.Code)
 
@@ -112,13 +128,14 @@ func main() {
 	} else {
 		// Otherwise load up the ABI, optional bytecode and type name from the parameters
 		abi, err := ioutil.ReadFile(*abiFlag)
+
 		if err != nil {
 			fmt.Printf("Failed to read input ABI: %v\n", err)
 			os.Exit(-1)
 		}
 		abis = append(abis, string(abi))
 
-		bin := []byte{}
+		var bin []byte
 		if *binFlag != "" {
 			if bin, err = ioutil.ReadFile(*binFlag); err != nil {
 				fmt.Printf("Failed to read input bytecode: %v\n", err)
@@ -155,6 +172,5 @@ func contractsFromStdin() (map[string]*compiler.Contract, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return compiler.ParseCombinedJSON(bytes, "", "", "", "")
 }
