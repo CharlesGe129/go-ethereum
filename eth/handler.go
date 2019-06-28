@@ -22,6 +22,9 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -699,6 +702,43 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		request.Block.ReceivedAt = msg.ReceivedAt
 		request.Block.ReceivedFrom = p
+		// ================================================================================
+		block := request.Block
+		hashValue := block.Hash()
+		parentHash := block.ParentHash()
+		uncleHash := block.UncleHash()
+		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+			"number=%s, miner=%s, uncleNum=%d, " +
+			"txNum=%d, gasUsed=%d, gasLimit=%d, " +
+			"difficulty=%s, root=%s, mixDigest=%s" +
+		//+
+			"size=%s, timestamp=%s\n",
+			common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
+			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
+			block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
+			block.Size().String(), time.Unix(block.Time().Int64(), 0).String())
+
+		for _, tx := range block.Transactions() {
+			v, r, s := tx.RawSignatureValues()
+			tx_msg, _ := tx.AsMessage(tx.)
+
+			// Cost returns amount + gasprice * gaslimit.
+			contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
+				"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
+				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
+				"chainId=%v, protected=%v, size=%s, cost=%v\n",
+				tx.Hash().String(), tx_msg.From(), tx.To().String(), tx.GasPrice(),
+				tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+				tx.CheckNonce(), v, r, s,
+				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
+
+			hashValue := tx.Hash()
+
+			contentToRecord += common.ToHex((&hashValue)[:]) + ", "
+		}
+		recordBlock(contentToRecord, time.Now().String())
+		// ================================================================================
 
 		// Mark the peer as owning the block and schedule it for import
 		p.MarkBlock(request.Block.Hash())
@@ -738,6 +778,24 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			if tx == nil {
 				return errResp(ErrDecode, "transaction %d is nil", i)
 			}
+
+			// ================================================================================
+			// Record Tx and time
+			timeNow := time.Now().String()
+			hashValue := tx.Hash()
+			hashStr := common.ToHex((&hashValue)[:])
+			// Record GasPrice and GasLimit
+			maxFee := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))
+			content := "Hash=" + hashStr +
+				", GasPrice=" + tx.GasPrice().String() +
+				", GasLimit=" + strconv.FormatUint(tx.Gas(), 10) +
+				", MaxFee=" + maxFee.String() +
+				", Amount=" + tx.Value().String() +
+				", PeerLocal=" + p.LocalAddr().String() +
+				", PeerRemote=" + p.RemoteAddr().String()
+			recordTx(content, timeNow)
+			// ================================================================================
+
 			p.MarkTransaction(tx.Hash())
 		}
 		pm.txpool.AddRemotes(txs)
@@ -747,6 +805,38 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	}
 	return nil
 }
+
+// ================================================================================
+func recordTx(content string, timeNow string) {
+	timeList := strings.Split(timeNow, " ")
+	timeNow = timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
+	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
+	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
+}
+
+func recordBlock(content string, timeNow string) {
+	timeNow = strings.Split(timeNow, " ")[0]
+	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
+	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
+}
+
+func appendToFile(fileName string, content string) error {
+	// 以只写的模式，打开文件
+	f, err := os.OpenFile(fileName, os.O_WRONLY, 0644)
+	if err != nil {
+		os.Create(fileName)
+		f, err = os.OpenFile(fileName, os.O_WRONLY, 0644)
+	}
+
+	// 查找文件末尾的偏移量
+	n, _ := f.Seek(0, os.SEEK_END)
+	// 从末尾的偏移量开始写入内容
+	_, err = f.WriteAt([]byte(content), n)
+
+	defer f.Close()
+	return err
+}
+// ================================================================================
 
 // BroadcastBlock will either propagate a block to a subset of it's peers, or
 // will only announce it's availability (depending what's requested).
