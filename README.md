@@ -14,12 +14,12 @@ scp -i "~/.ssh/cs690ethereum.pem" ubuntu@ec2-18-144-14-139.us-west-1.compute.ama
 
 ## Go Ethereum
 
-<<<<<<< HEAD
+
 Customized by Charles Ge and Jinyue Song
 Official golang implementation of the Ethereum protocol.
 =======
 Official Golang implementation of the Ethereum protocol.
->>>>>>> f7cdea2bdcd7ff3cec99731cb912cde0b233d6c9
+
 
 [![API Reference](
 https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f676f6c616e672f6764646f3f7374617475732e737667
