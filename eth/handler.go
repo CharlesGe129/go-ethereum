@@ -717,18 +717,25 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 			block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
-			block.Size().String(), time.Unix(block.Time().Int64(), 0).String())
+			block.Size().String(), time.Unix(int64(block.Time()),  0).String())
 
+		signer := types.MakeSigner(pm.chainconfig, block.Number())
+		var from string
 		for _, tx := range block.Transactions() {
 			v, r, s := tx.RawSignatureValues()
-			tx_msg, _ := tx.AsMessage(tx.)
-
+			msg, err := tx.AsMessage(signer)
+			if err != nil {
+				fmt.Printf("Error in handler.go/newBlockMsg: %s\n", err.Error())
+				from = ""
+			} else {
+				from = msg.From().String()
+			}
 			// Cost returns amount + gasprice * gaslimit.
 			contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 				"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
 				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
-				tx.Hash().String(), tx_msg.From(), tx.To().String(), tx.GasPrice(),
+				tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
 				tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
 				tx.CheckNonce(), v, r, s,
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
