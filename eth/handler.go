@@ -707,13 +707,14 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		hashValue := block.Hash()
 		parentHash := block.ParentHash()
 		uncleHash := block.UncleHash()
-		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
+			"receiptHash=%s, " +
 			"number=%s, miner=%s, uncleNum=%d, " +
 			"txNum=%d, gasUsed=%d, gasLimit=%d, " +
-			"difficulty=%s, root=%s, mixDigest=%s" +
-		//+
+			"difficulty=%s, root=%s, mixDigest=%s, " +
 			"size=%s, timestamp=%s\n",
 			common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+			block.ReceiptHash().String(),
 			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 			block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
@@ -730,8 +731,8 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				from = msg.From().String()
 			}
 			// Cost returns amount + gasprice * gaslimit.
-			contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
-				"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
+			contentToRecord += fmt.Sprintf("tx hash=%s, from=%s, to=%s, gasPrice=%v, " +
+				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
 				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
@@ -739,9 +740,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				tx.CheckNonce(), v, r, s,
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 
-			hashValue := tx.Hash()
+			//hashValue := tx.Hash()
 
-			contentToRecord += common.ToHex((&hashValue)[:]) + ", "
+			//contentToRecord += common.ToHex((&hashValue)[:]) + ", "
 		}
 		recordBlock(contentToRecord, time.Now().String())
 		// ================================================================================
@@ -787,18 +788,38 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 
 			// ================================================================================
 			// Record Tx and time
+			v, r, s := tx.RawSignatureValues()
+			//msg, err := tx.AsMessage(signer)
+			//if err != nil {
+			//	from = "error"
+			//} else {
+			//	from = msg.From().String()
+			//}
+			// Cost returns amount + gasprice * gaslimit.
+			content := fmt.Sprintf("tx hash=%s, to=%s, gasPrice=%v, " +
+				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
+				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
+				"peerLocal=%s, peerRemote=%s, " +
+				"chainId=%v, protected=%v, size=%s, cost=%v\n",
+				//tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
+				tx.Hash().String(), tx.To().String(), tx.GasPrice(),
+				tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+				tx.CheckNonce(), v, r, s,
+				p.LocalAddr().String(), p.RemoteAddr().String(),
+				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
+
 			timeNow := time.Now().String()
-			hashValue := tx.Hash()
-			hashStr := common.ToHex((&hashValue)[:])
+			//hashValue := tx.Hash()
+			//hashStr := common.ToHex((&hashValue)[:])
 			// Record GasPrice and GasLimit
-			maxFee := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))
-			content := "Hash=" + hashStr +
-				", GasPrice=" + tx.GasPrice().String() +
-				", GasLimit=" + strconv.FormatUint(tx.Gas(), 10) +
-				", MaxFee=" + maxFee.String() +
-				", Amount=" + tx.Value().String() +
-				", PeerLocal=" + p.LocalAddr().String() +
-				", PeerRemote=" + p.RemoteAddr().String()
+			//maxFee := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))
+			//content := "Hash=" + hashStr +
+			//	", GasPrice=" + tx.GasPrice().String() +
+			//	", GasLimit=" + strconv.FormatUint(tx.Gas(), 10) +
+			//	", MaxFee=" + maxFee.String() +
+			//	", Amount=" + tx.Value().String() +
+			//	", PeerLocal=" + p.LocalAddr().String() +
+			//	", PeerRemote=" + p.RemoteAddr().String()
 			recordTx(content, timeNow)
 			// ================================================================================
 

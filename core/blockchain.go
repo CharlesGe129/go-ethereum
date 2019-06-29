@@ -1629,11 +1629,13 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 			uncleHash := block.UncleHash()
 			signer := types.MakeSigner(bc.Config(), block.Number())
 			var from string
-			contentToRecord := fmt.Sprintf("[Inserted]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+			contentToRecord := fmt.Sprintf("[Inserted]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
+				"receiptHash=%s, " +
 				"number=%s, miner=%s, uncleNum=%d, " +
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 				"size=%s, timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+				block.ReceiptHash().String(),
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 				block.Size().String(), time.Unix(int64(block.Time()), 0).String())
@@ -1676,11 +1678,13 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 			uncleHash := block.UncleHash()
 			signer := types.MakeSigner(bc.Config(), block.Number())
 			var from string
-			contentToRecord := fmt.Sprintf("[InsertedFork]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+			contentToRecord := fmt.Sprintf("[InsertedFork]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
+				"receiptHash=%s, " +
 				"number=%s, miner=%s, uncleNum=%d, " +
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 				"size=%s, timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+				block.ReceiptHash().String(),
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 				block.Size().String(), time.Unix(int64(block.Time()), 0).String())
