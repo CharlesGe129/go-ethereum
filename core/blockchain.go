@@ -23,6 +23,8 @@ import (
 	"io"
 	"math/big"
 	mrand "math/rand"
+	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -1617,10 +1619,44 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 
 		switch status {
 		case CanonStatTy:
-			log.Debug("Inserted new block", "number", block.Number(), "hash", block.Hash(),
+			log.Info("Inserted new block", "number", block.Number(), "hash", block.Hash(),
 				"uncles", len(block.Uncles()), "txs", len(block.Transactions()), "gas", block.GasUsed(),
 				"elapsed", common.PrettyDuration(time.Since(start)),
 				"root", block.Root())
+
+			hashValue := block.Hash()
+			parentHash := block.ParentHash()
+			uncleHash := block.UncleHash()
+			signer := types.MakeSigner(bc.Config(), block.Number())
+			var from string
+			contentToRecord := fmt.Sprintf("[Inserted]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+				"number=%s, miner=%s, uncleNum=%d, " +
+				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
+				"size=%s, timestamp=%s\n",
+				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
+				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
+				block.Size().String(), time.Unix(int64(block.Time()), 0).String())
+
+			for _, tx := range block.Transactions() {
+				v, r, s := tx.RawSignatureValues()
+				msg, err := tx.AsMessage(signer)
+				if err != nil {
+					from = "error"
+				} else {
+					from = msg.From().String()
+				}
+				// Cost returns amount + gasprice * gaslimit.
+				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
+					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
+					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
+					"chainId=%v, protected=%v, size=%s, cost=%v\n",
+					tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
+					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+					tx.CheckNonce(), v, r, s,
+					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
+			}
+			recordBlock(contentToRecord, time.Now().String())
 
 			coalescedLogs = append(coalescedLogs, logs...)
 			events = append(events, ChainEvent{block, block.Hash(), logs})
@@ -1630,10 +1666,45 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 			bc.gcproc += proctime
 
 		case SideStatTy:
-			log.Debug("Inserted forked block", "number", block.Number(), "hash", block.Hash(),
+			log.Info("Inserted forked block", "number", block.Number(), "hash", block.Hash(),
 				"diff", block.Difficulty(), "elapsed", common.PrettyDuration(time.Since(start)),
 				"txs", len(block.Transactions()), "gas", block.GasUsed(), "uncles", len(block.Uncles()),
 				"root", block.Root())
+
+			hashValue := block.Hash()
+			parentHash := block.ParentHash()
+			uncleHash := block.UncleHash()
+			signer := types.MakeSigner(bc.Config(), block.Number())
+			var from string
+			contentToRecord := fmt.Sprintf("[InsertedFork]Block Hash=%s, parentHash=%s, , uncleHash=%s, " +
+				"number=%s, miner=%s, uncleNum=%d, " +
+				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
+				"size=%s, timestamp=%s\n",
+				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
+				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
+				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
+				block.Size().String(), time.Unix(int64(block.Time()), 0).String())
+
+			for _, tx := range block.Transactions() {
+				v, r, s := tx.RawSignatureValues()
+				msg, err := tx.AsMessage(signer)
+				if err != nil {
+					from = "error"
+				} else {
+					from = msg.From().String()
+				}
+				// Cost returns amount + gasprice * gaslimit.
+				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
+					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
+					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
+					"chainId=%v, protected=%v, size=%s, cost=%v\n",
+					tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
+					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+					tx.CheckNonce(), v, r, s,
+					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
+			}
+			recordBlock(contentToRecord, time.Now().String())
+
 			events = append(events, ChainSideEvent{block})
 
 		default:
@@ -1671,6 +1742,29 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 		events = append(events, ChainHeadEvent{lastCanon})
 	}
 	return it.index, events, coalescedLogs, err
+}
+
+func recordBlock(content string, timeNow string) {
+	timeNow = strings.Split(timeNow, " ")[0]
+	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
+	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
+}
+
+func appendToFile(fileName string, content string) error {
+	// 以只写的模式，打开文件
+	f, err := os.OpenFile(fileName, os.O_WRONLY, 0644)
+	if err != nil {
+		os.Create(fileName)
+		f, err = os.OpenFile(fileName, os.O_WRONLY, 0644)
+	}
+
+	// 查找文件末尾的偏移量
+	n, _ := f.Seek(0, os.SEEK_END)
+	// 从末尾的偏移量开始写入内容
+	_, err = f.WriteAt([]byte(content), n)
+
+	defer f.Close()
+	return err
 }
 
 // insertSideChain is called when an import batch hits upon a pruned ancestor

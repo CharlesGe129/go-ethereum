@@ -725,8 +725,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			v, r, s := tx.RawSignatureValues()
 			msg, err := tx.AsMessage(signer)
 			if err != nil {
-				fmt.Printf("Error in handler.go/newBlockMsg: %s\n", err.Error())
-				from = ""
+				from = "error"
 			} else {
 				from = msg.From().String()
 			}
