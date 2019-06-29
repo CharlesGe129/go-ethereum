@@ -721,7 +721,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			block.Size().String(), time.Unix(int64(block.Time()),  0).String())
 
 		signer := types.MakeSigner(pm.chainconfig, block.Number())
-		var from string
+		var from, to string
 		for _, tx := range block.Transactions() {
 			v, r, s := tx.RawSignatureValues()
 			msg, err := tx.AsMessage(signer)
@@ -730,12 +730,17 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			} else {
 				from = msg.From().String()
 			}
+			if tx.To() == nil {
+				to = ""
+			} else {
+				to = tx.To().String()
+			}
 			// Cost returns amount + gasprice * gaslimit.
 			contentToRecord += fmt.Sprintf("tx hash=%s, from=%s, to=%s, gasPrice=%v, " +
 				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
 				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
-				tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
+				tx.Hash().String(), from, to, tx.GasPrice(),
 				tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
 				tx.CheckNonce(), v, r, s,
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
