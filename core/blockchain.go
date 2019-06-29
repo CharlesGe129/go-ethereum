@@ -1628,7 +1628,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 			parentHash := block.ParentHash()
 			uncleHash := block.UncleHash()
 			signer := types.MakeSigner(bc.Config(), block.Number())
-			var from string
+			var from, to string
 			contentToRecord := fmt.Sprintf("[Inserted]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
 				"receiptHash=%s, " +
 				"number=%s, miner=%s, uncleNum=%d, " +
@@ -1648,12 +1648,17 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				} else {
 					from = msg.From().String()
 				}
+				if tx.To() == nil {
+					to = ""
+				} else {
+					to = tx.To().String()
+				}
 				// Cost returns amount + gasprice * gaslimit.
 				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
 					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 					"chainId=%v, protected=%v, size=%s, cost=%v\n",
-					tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
+					tx.Hash().String(), from, to, tx.GasPrice(),
 					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
 					tx.CheckNonce(), v, r, s,
 					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
@@ -1677,7 +1682,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 			parentHash := block.ParentHash()
 			uncleHash := block.UncleHash()
 			signer := types.MakeSigner(bc.Config(), block.Number())
-			var from string
+			var from, to string
 			contentToRecord := fmt.Sprintf("[InsertedFork]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
 				"receiptHash=%s, " +
 				"number=%s, miner=%s, uncleNum=%d, " +
@@ -1697,16 +1702,17 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				} else {
 					from = msg.From().String()
 				}
-				fmt.Printf("hash=%s\n", tx.Hash().String())
-				fmt.Printf("from=%s\n", from)
-				fmt.Printf("to=%s\n", tx.To().String())
-				fmt.Printf("gasprice=%s\n", tx.GasPrice())
+				if tx.To() == nil {
+					to = ""
+				} else {
+					to = tx.To().String()
+				}
 				// Cost returns amount + gasprice * gaslimit.
 				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
 					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 					"chainId=%v, protected=%v, size=%s, cost=%v\n",
-					tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
+					tx.Hash().String(), from, to, tx.GasPrice(),
 					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
 					tx.CheckNonce(), v, r, s,
 					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
