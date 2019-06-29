@@ -1697,6 +1697,10 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				} else {
 					from = msg.From().String()
 				}
+				fmt.Printf("hash=%s\n", tx.Hash().String())
+				fmt.Printf("from=%s\n", from)
+				fmt.Printf("to=%s\n", tx.To().String())
+				fmt.Printf("gasprice=%s\n", tx.GasPrice())
 				// Cost returns amount + gasprice * gaslimit.
 				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
