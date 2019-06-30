@@ -1659,7 +1659,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 					"chainId=%v, protected=%v, size=%s, cost=%v\n",
 					tx.Hash().String(), from, to, tx.GasPrice(),
-					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+					tx.Value(), tx.Gas(), tx.Nonce(), string(tx.Data()),
 					tx.CheckNonce(), v, r, s,
 					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 			}
@@ -1713,7 +1713,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 					"chainId=%v, protected=%v, size=%s, cost=%v\n",
 					tx.Hash().String(), from, to, tx.GasPrice(),
-					tx.Value(), tx.Gas(), tx.Nonce(), tx.Data(),
+					tx.Value(), tx.Gas(), tx.Nonce(), string(tx.Data()),
 					tx.CheckNonce(), v, r, s,
 					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 			}
