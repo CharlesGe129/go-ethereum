@@ -1,22 +1,25 @@
 import requests
+import time
 from bs4 import BeautifulSoup
 
 
-soup = BeautifulSoup
+bs = BeautifulSoup
 
 
 class UncleCrawler:
     def __init__(self):
-        self.base_url = 'https://etherscan.io/uncles?ps=100&p='
+        self.etherscan_url = 'https://etherscan.io'
+        self.list_url_prefix = self.etherscan_url + '/uncles?ps=100&p='
         self.file_path = './uncles/'
 
     def start(self):
         for i in range(1, 2):
-            url = f"{self.base_url}{i}"
+            url = f"{self.list_url_prefix}{i}"
             print(f"loading {url}")
             detail_page_urls = self.load_list_page(url)
             for detail_url in detail_page_urls:
-                info = self.load_detail_page(detail_url)
+                url = self.etherscan_url + detail_url
+                info = self.load_detail_page(url)
                 self.save(info)
 
     @staticmethod
@@ -33,11 +36,36 @@ class UncleCrawler:
 
     @staticmethod
     def load_detail_page(url):
-        pass
+        print(f"loading {url}")
+        content = requests.get(url).content
+        soup = BeautifulSoup(content, 'html.parser')
+        table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
+        info = {}
+        divs = table.find_all('div', {'class': 'col-md-9'})
+        info['uncleHeight'] = divs[0].find('strong').string
+        info['unclePosition'] = divs[1].string.strip('\n')
+        info['blockHeight'] = divs[2].find('a').string
+        info['hash'] = divs[3].string.strip('\n')
+        info['parentHash'] = divs[4].string.strip('\n')
+        info['sha3Uncles'] = divs[5].string.strip('\n')
+        info['minerHash'] = divs[6].find('a').string.split(' ')[0]
+        info['miner'] = divs[6].find('a').string.split(' ')[1] if len(divs[6].find('a').string.split(' ')) > 1 else ''
+        info['difficulty'] = divs[7].string.strip('\n')
+        info['gasLimit'] = divs[8].string.strip('\n')
+        info['gasUsed'] = divs[9].string.strip('\n')
+        info['timeStampUnformated'] = str(divs[10]).split('\n')[-2].split('(')[1].strip(')')
+        info['uncleReward'] = str(divs[11]).split('\n')[-2].replace('<b>', '').replace('</b>', '')
+        return info
 
     @staticmethod
     def save(info):
-        pass
+        t = time.strptime(info['timeStampUnformated'].split(' ')[0], '%m/%d/%Y')
+        filename = time.strftime('%Y-%m-%d', t)
+        with open(f'./uncles/{filename}.txt', 'a') as f:
+            s = ''
+            for k, v in info.items():
+                s += f"{k}={v},"
+            f.write(s[:-1] + '\n')
 
 
 if __name__ == '__main__':
