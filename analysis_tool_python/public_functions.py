@@ -1,6 +1,7 @@
 from os.path import isfile, join
 from os import listdir
 
+
 def get_all_file_name(file_path, file_type):
 	# file type: for example, .csv .txt .pdf ...
 

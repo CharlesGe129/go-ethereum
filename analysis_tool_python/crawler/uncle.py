@@ -1,7 +1,7 @@
 import requests
 import time
 from bs4 import BeautifulSoup
-
+from datetime import datetime
 
 bs = BeautifulSoup
 
@@ -13,7 +13,10 @@ class UncleCrawler:
         self.file_path = './uncles/'
 
     def start(self):
-        for i in range(1, 2):
+        started_at = datetime.now()
+        counter = 1
+        for i in range(1, 8963):
+            print(f'loading page {i}')
             url = f"{self.list_url_prefix}{i}"
             print(f"loading {url}")
             detail_page_urls = self.load_list_page(url)
@@ -21,6 +24,8 @@ class UncleCrawler:
                 url = self.etherscan_url + detail_url
                 info = self.load_detail_page(url)
                 self.save(info)
+                print(f"Average time for {counter} blocks: {((datetime.now()-started_at).seconds) / counter} seconds")
+                counter += 1
 
     @staticmethod
     def load_list_page(url):
@@ -61,7 +66,7 @@ class UncleCrawler:
     def save(info):
         t = time.strptime(info['timeStampUnformated'].split(' ')[0], '%m/%d/%Y')
         filename = time.strftime('%Y-%m-%d', t)
-        with open(f'./uncles/{filename}.txt', 'a') as f:
+        with open(f'./uncles/{filename}.txt', 'a+') as f:
             s = ''
             for k, v in info.items():
                 s += f"{k}={v},"
