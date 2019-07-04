@@ -55,6 +55,7 @@ class UncleCrawler:
         info['sha3Uncles'] = divs[5].string.strip('\n')
         info['minerHash'] = divs[6].find('a').string.split(' ')[0]
         info['miner'] = divs[6].find('a').string.split(' ')[1] if len(divs[6].find('a').string.split(' ')) > 1 else ''
+        info['mineTime'] = divs[6].text.split('in ')[1].split(' secs')[0]
         info['difficulty'] = divs[7].string.strip('\n')
         info['gasLimit'] = divs[8].string.strip('\n')
         info['gasUsed'] = divs[9].string.strip('\n')
@@ -72,6 +73,10 @@ class UncleCrawler:
                 s += f"{k}={v},"
             f.write(s[:-1] + '\n')
 
+    def test(self):
+        self.load_detail_page('https://etherscan.io/uncle/0x997b66eb0a1ac77433b07745a0e353708407c7fdc77e93b4cafc0d64f108c040')
+
 
 if __name__ == '__main__':
     UncleCrawler().start()
+    # UncleCrawler().test()
