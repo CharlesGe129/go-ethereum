@@ -81,5 +81,5 @@ class UncleCrawler:
         print(test_info['timeStampUnformated'].split(' '))
 
 if __name__ == '__main__':
-    # UncleCrawler().start()
-    UncleCrawler().test()
+    UncleCrawler().start()
+    # UncleCrawler().test()
