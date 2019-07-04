@@ -6,14 +6,18 @@ from datetime import datetime
 soup = BeautifulSoup
 
 
-class UncleCrawler:
+class ForkedCrawler:
     def __init__(self):
         self.base_url = 'https://etherscan.io/blocks_forked?ps=100&p='
         self.raw_one_forked = 'https://etherscan.io/block/'
         self.file_path = './forked/'
 
     def start(self):
-        for i in range(1, 2):
+        started_at = datetime.now()
+        counter = 1
+        i = 1
+        while i <= 904:
+        # for i in range(1, 904):
             url = f"{self.base_url}{i}"
             print(f"loading {url}")
             forked_heights_list = self.load_list_page(url)
@@ -21,6 +25,9 @@ class UncleCrawler:
             for forked_height in forked_heights_list:
                 info = self.load_detail_page(self.raw_one_forked + forked_height + '/f')
                 self.save(info)
+                print(f"Average time for {counter} blocks: {((datetime.now()-started_at).seconds) / counter} seconds")
+                counter += 1
+            i += 1
 
     @staticmethod
     def load_list_page(url):
@@ -83,11 +90,40 @@ class UncleCrawler:
         return info
 
     @staticmethod
+    def parse_timestamp(info):
+        timestamp_list = info['timeStampUnformated'].split(' ')[0].split('-')
+        if timestamp_list[0] == 'Jan':
+            timestamp_list[0] = '01'
+        elif timestamp_list[0] == 'Feb':
+            timestamp_list[0] = '02'
+        elif timestamp_list[0] == 'Mar':
+            timestamp_list[0] = '03'
+        elif timestamp_list[0] == 'Apr':
+            timestamp_list[0] = '04'
+        elif timestamp_list[0] == 'May':
+            timestamp_list[0] = '05'
+        elif timestamp_list[0] == 'Jun':
+            timestamp_list[0] = '06'
+        elif timestamp_list[0] == 'Jul':
+            timestamp_list[0] = '07'
+        elif timestamp_list[0] == 'Aug':
+            timestamp_list[0] = '08'
+        elif timestamp_list[0] == 'Sep':
+            timestamp_list[0] = '09'
+        elif timestamp_list[0] == 'Oct':
+            timestamp_list[0] = '10'
+        elif timestamp_list[0] == 'Nov':
+            timestamp_list[0] = '11'
+        elif timestamp_list[0] == 'Dec':
+            timestamp_list[0] = '12'
+        return timestamp_list[0] + '-' + timestamp_list[1] + '-' + timestamp_list[2]
+
+    @staticmethod
     def save(info):
-        print(info['timeStampUnformated'])
-        t = time.strptime(info['timeStampUnformated'].split(' ')[0], '%m-%d-%Y')
+        timestamp = ForkedCrawler.parse_timestamp(info)
+        t = time.strptime(timestamp, '%m-%d-%Y')
         filename = time.strftime('%Y-%m-%d', t)
-        with open(f'./uncles/{filename}.txt', 'a+') as f:
+        with open(f'./forked/{filename}.txt', 'a+') as f:
             s = ''
             for k, v in info.items():
                 s += f"{k}={v},"
@@ -95,4 +131,4 @@ class UncleCrawler:
 
 
 if __name__ == '__main__':
-    UncleCrawler().start()
+    ForkedCrawler().start()

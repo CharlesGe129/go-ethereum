@@ -15,7 +15,9 @@ class UncleCrawler:
     def start(self):
         started_at = datetime.now()
         counter = 1
-        for i in range(1, 8963):
+        i = 1
+        while i <= 8963:
+        # for i in range(1, 8963):
             print(f'loading page {i}')
             url = f"{self.list_url_prefix}{i}"
             print(f"loading {url}")
@@ -26,6 +28,7 @@ class UncleCrawler:
                 self.save(info)
                 print(f"Average time for {counter} blocks: {((datetime.now()-started_at).seconds) / counter} seconds")
                 counter += 1
+            i += 1
 
     @staticmethod
     def load_list_page(url):
@@ -74,9 +77,9 @@ class UncleCrawler:
             f.write(s[:-1] + '\n')
 
     def test(self):
-        self.load_detail_page('https://etherscan.io/uncle/0x997b66eb0a1ac77433b07745a0e353708407c7fdc77e93b4cafc0d64f108c040')
-
+        test_info = self.load_detail_page('https://etherscan.io/uncle/0x997b66eb0a1ac77433b07745a0e353708407c7fdc77e93b4cafc0d64f108c040')
+        print(test_info['timeStampUnformated'].split(' '))
 
 if __name__ == '__main__':
-    UncleCrawler().start()
-    # UncleCrawler().test()
+    # UncleCrawler().start()
+    UncleCrawler().test()
