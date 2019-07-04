@@ -94,8 +94,4 @@ class UncleCrawler:
 
 if __name__ == '__main__':
     UncleCrawler().start()
-<<<<<<< HEAD
-    # UncleCrawler().test()
-=======
-    # UncleCrawler().test()
->>>>>>> 109596f055ddfbf9e974a9f783393ca3f3c661e2
+
