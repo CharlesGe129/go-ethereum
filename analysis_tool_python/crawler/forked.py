@@ -2,8 +2,11 @@ import requests
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime
+from urllib.request import Request
+import urllib.parse
 
-soup = BeautifulSoup
+
+bs = BeautifulSoup
 
 
 def extract_detail_table(table):
@@ -69,15 +72,34 @@ class ForkedCrawler:
 
     @staticmethod
     def load_detail_page(url):
+        # url = 'http://www.someserver.com/cgi-bin/register.cgi'
+        # user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
+        # values = {'name': 'Michael Foord',
+        #           'location': 'Northampton',
+        #           'language': 'Python'}
+        # headers = {'User-Agent': user_agent}
+        #
+        # data = urllib.parse.urlencode(values)
+        # req = urllib.request.Request(url, data, headers)
+        # response = urllib.request.urlopen(req)
+        # the_page = response.read()
+        # print(the_page)
         print(f"loading {url}")
+        f_req = Request(url)
+        f_req.add_header("User-Agent",
+                         "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36")
+
         while True:
             try:
                 content = requests.get(url).content
                 soup = BeautifulSoup(content, 'html.parser')
+                print('soup type', type(soup))
+                print('soup: ', soup)
                 table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
+                # table = soup.find('div', {'class': 'card-body'})
                 return extract_detail_table(table)
             except Exception as e:
-                print(f"{e}\nreloading {url}")
+                print(f"Error in func load_detail_page\n{e}\nreloading {url}")
 
     @staticmethod
     def parse_timestamp(info):
@@ -119,6 +141,11 @@ class ForkedCrawler:
                 s += f"{k}={v},"
             f.write(s[:-1] + '\n')
 
+    def test(self):
+        test_page_content = self.load_detail_page('https://etherscan.io/block/6222544/f')
+        print(test_page_content)
 
 if __name__ == '__main__':
-    ForkedCrawler().start()
+    # ForkedCrawler().start()
+    test_f = ForkedCrawler()
+    test_f.test()

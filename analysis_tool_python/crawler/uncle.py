@@ -93,5 +93,6 @@ class UncleCrawler:
 
 
 if __name__ == '__main__':
-    UncleCrawler().start()
-
+    # UncleCrawler().start()
+    test_u = UncleCrawler()
+    test_u.test()
