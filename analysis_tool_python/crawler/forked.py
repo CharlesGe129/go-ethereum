@@ -42,7 +42,7 @@ class ForkedCrawler:
     def start(self):
         started_at = datetime.now()
         counter = 1
-        i = 1
+        i = 49
         while i <= 904:
             url = f"{self.base_url}{i}"
             print(f"loading {url}")
@@ -56,10 +56,13 @@ class ForkedCrawler:
 
     @staticmethod
     def load_list_page(url):
+        user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
+        headers = {'user-agent': user_agent}
         while True:
             try:
-                content = requests.get(url).content
+                content = requests.get(url, headers=headers).content
                 soup = BeautifulSoup(content, 'html.parser')
+                print(soup)
                 table = soup.find('table', {'class': 'table table-hover'})
                 rows = table.find('tbody').find_all('tr')
                 # 返回的lamdba表达式的详细内容
@@ -85,16 +88,19 @@ class ForkedCrawler:
         # the_page = response.read()
         # print(the_page)
         print(f"loading {url}")
-        f_req = Request(url)
-        f_req.add_header("User-Agent",
-                         "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36")
+        # f_req = Request(url)
+        # f_req.add_header("User-Agent",
+        #                  "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36")
 
+        user_agent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36"
+        headers = {'user-agent': user_agent}
         while True:
             try:
+                # content = requests.get(url, headers=headers).content
                 content = requests.get(url).content
                 soup = BeautifulSoup(content, 'html.parser')
-                print('soup type', type(soup))
-                print('soup: ', soup)
+                # print('soup type', type(soup))
+                # print('soup: ', soup)
                 table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
                 # table = soup.find('div', {'class': 'card-body'})
                 return extract_detail_table(table)
@@ -146,6 +152,6 @@ class ForkedCrawler:
         print(test_page_content)
 
 if __name__ == '__main__':
-    # ForkedCrawler().start()
-    test_f = ForkedCrawler()
-    test_f.test()
+    ForkedCrawler().start()
+    # test_f = ForkedCrawler()
+    # test_f.test()
