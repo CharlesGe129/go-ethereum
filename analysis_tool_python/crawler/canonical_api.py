@@ -2,7 +2,7 @@ import json
 import random
 import requests
 from datetime import datetime
-
+import math
 
 class CanonicalCrawler:
     def __init__(self):
@@ -11,13 +11,12 @@ class CanonicalCrawler:
 
     def start(self):
         started_at = datetime.now()
-        for i in range(8000000, 1, -1):
-            api_key = self.api_keys[random.randint(0, len(self.api_keys)-1)]
-            self.load_page(self.base_url.format(hex(i), api_key))
+        for i in range(8000001, 1, -1):
             # api_key = self.api_keys[random.randint(0, len(self.api_keys)-1)]
-            # self.load_page(self.base_url.format(hex(i), api_key))
+            api_key = self.api_keys[i%3] # take reminder of 3
+            self.load_page(self.base_url.format(hex(i), api_key))
             # return
-            print(f"Average time for {i} blocks: {((datetime.now() - started_at).seconds) / (8000001-i)} seconds")
+            print(f"Average time for {i} blocks: {((datetime.now() - started_at).seconds) / (8000002-i)} seconds")
 
     def load_page(self, url):
         print(url)
