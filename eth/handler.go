@@ -708,13 +708,13 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		parentHash := block.ParentHash()
 		uncleHash := block.UncleHash()
 		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
-			"receiptHash=%s, " +
+			"receiptHash=%s, nonce=%v, logsBloom=%s, " +
 			"number=%s, miner=%s, uncleNum=%d, " +
 			"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 			"difficulty=%s, root=%s, mixDigest=%s, " +
 			"size=%s, timestamp=%s\n",
 			common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-			block.ReceiptHash().String(),
+			block.ReceiptHash().String(), block.Nonce(), string(block.Bloom().Bytes()),
 			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 			block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
