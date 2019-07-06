@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math"
 	"math/big"
 	"os"
@@ -741,7 +742,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				tx.Hash().String(), from, to, tx.GasPrice(),
-				tx.Value(), tx.Gas(), tx.Nonce(), string(tx.Data()),
+				tx.Value(), tx.Gas(), tx.Nonce(), string(hexutil.Bytes(tx.Data())),
 				tx.CheckNonce(), v, r, s,
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 
@@ -808,7 +809,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				//tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
 				tx.Hash().String(), tx.To().String(), tx.GasPrice(),
-				tx.Value(), tx.Gas(), tx.Nonce(), string(tx.Data()),
+				tx.Value(), tx.Gas(), tx.Nonce(), string(hexutil.Bytes(tx.Data())),
 				tx.CheckNonce(), v, r, s,
 				p.LocalAddr().String(), p.RemoteAddr().String(),
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
