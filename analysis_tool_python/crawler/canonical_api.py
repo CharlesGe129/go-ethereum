@@ -14,12 +14,12 @@ class CanonicalCrawler:
     def start(self):
         started_at = datetime.now()
         # overall from 8000001
-        for i in range(7992878, 1, -1):
+        for i in range(7975711, 1, -1):
             # api_key = self.api_keys[random.randint(0, len(self.api_keys)-1)]
             api_key = self.api_keys[i%6] # take reminder of 6
             self.load_page(self.base_url.format(hex(i), api_key))
             # return
-            print(f"Average time for {i} blocks: {((datetime.now() - started_at).seconds) / (7992879-i)} seconds")
+            print(f"Average time for {i} blocks: {((datetime.now() - started_at).seconds) / (7975713-i)} seconds")
 
     def load_page(self, url):
         print(url)
