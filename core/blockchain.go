@@ -1654,6 +1654,8 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				} else {
 					to = tx.To().String()
 				}
+				fmt.Println("payload")
+				fmt.Println(tx.Data())
 				// Cost returns amount + gasprice * gaslimit.
 				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
@@ -1708,6 +1710,8 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				} else {
 					to = tx.To().String()
 				}
+				fmt.Println("payload")
+				fmt.Println(tx.Data())
 				// Cost returns amount + gasprice * gaslimit.
 				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
