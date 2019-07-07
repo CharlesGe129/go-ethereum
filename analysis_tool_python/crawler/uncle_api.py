@@ -12,11 +12,11 @@ class UncleCrawler:
 
     def start(self):
         started_at = datetime.now()
-        for i in range(8000000, 1, -1):
+        for i in range(7915252, 1, -1):
             api_key = self.api_keys[random.randint(0, len(self.api_keys)-1)]
             # data = self.load_page(self.base_url.format(hex(i), api_key))
             self.load_uncles(api_key, self.base_url, i)
-            print(f"Average time for {i} blocks: {((datetime.now() - started_at).seconds) / (8000001-i)} seconds")
+            print(f"Average time for {i} blocks: {((datetime.now() - started_at).seconds) / (7915253-i)} seconds\n")
             # return
 
     def load_uncles(self, api_key, base_url, uncle_number):
