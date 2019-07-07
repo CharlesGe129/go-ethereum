@@ -17,6 +17,7 @@
 package eth
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -708,13 +709,13 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		parentHash := block.ParentHash()
 		uncleHash := block.UncleHash()
 		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
-			"receiptHash=%s, " +
+			"receiptHash=%s, nonce=%v, logsBloom=%s, " +
 			"number=%s, miner=%s, uncleNum=%d, " +
 			"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 			"difficulty=%s, root=%s, mixDigest=%s, " +
 			"size=%s, timestamp=%s\n",
 			common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-			block.ReceiptHash().String(),
+			block.ReceiptHash().String(), block.Nonce(), string(block.Bloom().Bytes()),
 			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 			block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
@@ -741,7 +742,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				tx.Hash().String(), from, to, tx.GasPrice(),
-				tx.Value(), tx.Gas(), tx.Nonce(), string(tx.Data()),
+				tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
 				tx.CheckNonce(), v, r, s,
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 
@@ -785,6 +786,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&txs); err != nil {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
+		var to string
 		for i, tx := range txs {
 			// Validate and mark the remote transaction
 			if tx == nil {
@@ -794,12 +796,11 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			// ================================================================================
 			// Record Tx and time
 			v, r, s := tx.RawSignatureValues()
-			//msg, err := tx.AsMessage(signer)
-			//if err != nil {
-			//	from = "error"
-			//} else {
-			//	from = msg.From().String()
-			//}
+			if tx.To() == nil {
+				to = ""
+			} else {
+				to = tx.To().String()
+			}
 			// Cost returns amount + gasprice * gaslimit.
 			content := fmt.Sprintf("tx hash=%s, to=%s, gasPrice=%v, " +
 				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
@@ -807,8 +808,8 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				"peerLocal=%s, peerRemote=%s, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				//tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
-				tx.Hash().String(), tx.To().String(), tx.GasPrice(),
-				tx.Value(), tx.Gas(), tx.Nonce(), string(tx.Data()),
+				tx.Hash().String(), to, tx.GasPrice(),
+				tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
 				tx.CheckNonce(), v, r, s,
 				p.LocalAddr().String(), p.RemoteAddr().String(),
 				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
