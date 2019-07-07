@@ -786,6 +786,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&txs); err != nil {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
+		var to string
 		for i, tx := range txs {
 			// Validate and mark the remote transaction
 			if tx == nil {
@@ -795,12 +796,11 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			// ================================================================================
 			// Record Tx and time
 			v, r, s := tx.RawSignatureValues()
-			//msg, err := tx.AsMessage(signer)
-			//if err != nil {
-			//	from = "error"
-			//} else {
-			//	from = msg.From().String()
-			//}
+			if tx.To() == nil {
+				to = ""
+			} else {
+				to = tx.To().String()
+			}
 			// Cost returns amount + gasprice * gaslimit.
 			content := fmt.Sprintf("tx hash=%s, to=%s, gasPrice=%v, " +
 				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
@@ -808,7 +808,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				"peerLocal=%s, peerRemote=%s, " +
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				//tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
-				tx.Hash().String(), tx.To().String(), tx.GasPrice(),
+				tx.Hash().String(), to, tx.GasPrice(),
 				tx.Value(), tx.Gas(), tx.Nonce(), string(hexutil.Bytes(tx.Data())),
 				tx.CheckNonce(), v, r, s,
 				p.LocalAddr().String(), p.RemoteAddr().String(),
