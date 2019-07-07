@@ -18,6 +18,7 @@
 package core
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -1662,7 +1663,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 					"chainId=%v, protected=%v, size=%s, cost=%v\n",
 					tx.Hash().String(), from, to, tx.GasPrice(),
-					tx.Value(), tx.Gas(), tx.Nonce(), string(hexutil.Bytes(tx.Data())),
+					tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
 					tx.CheckNonce(), v, r, s,
 					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 			}
@@ -1710,15 +1711,13 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				} else {
 					to = tx.To().String()
 				}
-				fmt.Println("payload")
-				fmt.Println(tx.Data())
 				// Cost returns amount + gasprice * gaslimit.
 				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
 					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
 					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
 					"chainId=%v, protected=%v, size=%s, cost=%v\n",
 					tx.Hash().String(), from, to, tx.GasPrice(),
-					tx.Value(), tx.Gas(), tx.Nonce(), string(hexutil.Bytes(tx.Data())),
+					tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
 					tx.CheckNonce(), v, r, s,
 					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 			}
