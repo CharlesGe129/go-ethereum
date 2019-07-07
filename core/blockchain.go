@@ -21,7 +21,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"io"
 	"math/big"
 	mrand "math/rand"
