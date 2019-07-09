@@ -61,7 +61,7 @@ class Analysis:
         #  "transactionsRoot": "0x486cf741ca62002401469dcab1789516b4f04b43aab2b65378940caaaecc9c5e",
         #  "uncles": []}
         data = json.loads(content)
-        # self.uncles[data['hash']] = data
+        self.uncles[data['hash']] = data
         t = datetime.fromtimestamp(int(data['timestamp'], 16), timezone.utc)
         day = t.strftime("%Y-%m-%d")
         hour = t.strftime("%Y-%m-%d_%H")
@@ -103,7 +103,7 @@ class Analysis:
     @staticmethod
     def statistics(ori_data, msg):
         print(msg)
-        udata = reverse_dict(ori_data)
+        data = reverse_dict(ori_data)
         counts = sorted(data.keys())
         print(f"max_count={counts[-1]}, time={data[counts[-1]]}")
         print(f"min_count={counts[0]}, time={data[counts[0]]}")
@@ -122,14 +122,17 @@ class Analysis:
         print(f"middle_count={middle}")
 
     def test(self):
-        dt = datetime.fromtimestamp(0x5ce34189, timezone.utc)
-        print(dt)
-        print(datetime.fromtimestamp(1558397321, timezone.utc))
-        new_int = int('0x5ce34189', 16)
-        print(hex(new_int))
+        # dt = datetime.fromtimestamp(0x5ce34189, timezone.utc)
+        # print(dt)
+        # print(datetime.fromtimestamp(1558397321, timezone.utc))
+        # new_int = int('0x5ce34189', 16)
+        # print(hex(new_int))
         # self.get_uncles_frequence()
         # print(self.hex_str_to_datetime('0x5ce34189'))
-
+        self.load_uncles()
+        print('In sample dataset: \n'
+              'From Tuesday, May 21, 2019 12:08:41 AM to Friday, June 21, 2019 6:54:41 AM')
+        print(len(self.uncles))
 
 if __name__ == '__main__':
     a = Analysis()
