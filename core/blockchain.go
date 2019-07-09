@@ -1636,7 +1636,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 				"size=%s, timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-				block.ReceiptHash().String(), block.Nonce(), string(block.Bloom().Bytes()),
+				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 				block.Size().String(), time.Unix(int64(block.Time()), 0).String())
@@ -1692,7 +1692,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 				"size=%s, timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-				block.ReceiptHash().String(), block.Nonce(), string(block.Bloom().Bytes()),
+				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 				block.Size().String(), time.Unix(int64(block.Time()), 0).String())
