@@ -15,12 +15,25 @@ EJ Jung [12:13 PM]
 UNCLE_PATH = '../crawler/uncle_sample/'
 CANONICAL_PATH = '../crawler/canonical_sample/'
 
+
+def reverse_dict(data):
+    rs = dict()
+    for k, v in data.items():
+        if v not in rs:
+            rs[v] = []
+        rs[v].append(k)
+    return rs
+
+
 class Analysis:
     def __init__(self):
-        self.uncles = dict() # dict[hash] = uncle_json_dict
-        self.day_freq = dict() # dict[date] = count_number
-        self.hour_freq = dict() # dict[date+hour] = count_number
-        self.minute_freq =  dict() # dict[date+hour+minute] = count_number
+        self.uncles = dict()  # dict[hash] = uncle_json_dict
+        self.day_freq = dict()  # dict[date] = count_number
+        self.hour_freq = dict()  # dict[date+hour] = count_number
+        self.minute_freq = dict()  # dict[date+hour+minute] = count_number
+        self.overall_hour_freq = dict()
+        self.overall_minute_freq = dict()
+        self.overall_weekday_freq = dict()
 
     def start(self):
         self.load_uncles()
@@ -47,9 +60,24 @@ class Analysis:
         #  "totalDifficulty": "0x22e6573d84f936e19e9",
         #  "transactionsRoot": "0x486cf741ca62002401469dcab1789516b4f04b43aab2b65378940caaaecc9c5e",
         #  "uncles": []}
-
         data = json.loads(content)
-        self.uncles[data['hash']] = data
+        # self.uncles[data['hash']] = data
+        t = datetime.fromtimestamp(int(data['timestamp'], 16), timezone.utc)
+        day = t.strftime("%Y-%m-%d")
+        hour = t.strftime("%Y-%m-%d_%H")
+        minute = t.strftime("%Y-%m-%d_%H:%M")
+        self.append_freq(self.day_freq, day)
+        self.append_freq(self.hour_freq, hour)
+        self.append_freq(self.minute_freq, minute)
+        self.append_freq(self.overall_hour_freq, t.hour)
+        self.append_freq(self.overall_minute_freq, t.minute)
+        self.append_freq(self.overall_weekday_freq, t.weekday()+1)
+
+    @staticmethod
+    def append_freq(data, k):
+        if k not in data:
+            data[k] = 0
+        data[k] += 1
 
     def load_uncles(self):
         for filename in os.listdir(UNCLE_PATH):
@@ -65,31 +93,33 @@ class Analysis:
     def count_uncles(self):
         print('In sample dataset: \n'
               'From Tuesday, May 21, 2019 12:08:41 AM to Friday, June 21, 2019 6:54:41 AM')
-        print('uncle number: ', len(self.uncles))
+        self.statistics(self.day_freq, "===================\nday freq")
+        self.statistics(self.hour_freq, "===================\nhour freq")
+        self.statistics(self.minute_freq, "===================\nminute freq")
+        self.statistics(self.overall_hour_freq, "===================\noverall hour freq")
+        self.statistics(self.overall_minute_freq, "===================\noverall minute freq")
+        self.statistics(self.overall_weekday_freq, "===================\noverall weekday freq")
 
-    def get_uncles_frequence(self):
-        for u_hash, uncle in self.uncles.items():
-            print(uncle['timestamp'])
-            dt = datetime.fromtimestamp(int(uncle['timestamp'], 16), timezone.utc)
-            print(dt)
-            # day frequence
-            if self.day_freq.__contains__(dt.date()):
-                self.day_freq[dt.date()] += 1
-            else:
-                self.day_freq[dt.date()] = 1
-
-            # hour
-
-            # minute
-
-            # Monday, Tues, Wed, ... , Sunday?
-
-
-    # def hex_str_to_datetime(self, hex_str):
-    #     new_int = int(hex_str, 16)
-    #     print(type(hex(new_int)))
-    #     print(new_int)
-        # return datetime.fromtimestamp(hex(new_int), timezone.utc)
+    @staticmethod
+    def statistics(ori_data, msg):
+        print(msg)
+        udata = reverse_dict(ori_data)
+        counts = sorted(data.keys())
+        print(f"max_count={counts[-1]}, time={data[counts[-1]]}")
+        print(f"min_count={counts[0]}, time={data[counts[0]]}")
+        count = 0
+        for each in ori_data.values():
+            count += each
+        print(f"avg_count={count / len(ori_data.keys())}")
+        temp = []
+        for k, v in ori_data.items():
+            temp.append(v)
+        nums = sorted(temp)
+        if len(nums) % 2 == 1:
+            middle = nums[int(len(nums) / 2)]
+        else:
+            middle = (nums[int(len(nums) / 2)] + nums[int(len(nums) / 2) - 1]) / 2
+        print(f"middle_count={middle}")
 
     def test(self):
         dt = datetime.fromtimestamp(0x5ce34189, timezone.utc)
@@ -97,8 +127,6 @@ class Analysis:
         print(datetime.fromtimestamp(1558397321, timezone.utc))
         new_int = int('0x5ce34189', 16)
         print(hex(new_int))
-        print(dt.time())
-        print(dt.date())
         # self.get_uncles_frequence()
         # print(self.hex_str_to_datetime('0x5ce34189'))
 
@@ -107,4 +135,4 @@ if __name__ == '__main__':
     a = Analysis()
     a.start()
     # a.test()
-    a.get_uncles_frequence()
+    # a.get_uncles_frequence()

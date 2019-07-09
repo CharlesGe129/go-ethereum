@@ -52,3 +52,4 @@ analysis_tool_python/csv*
 SmartPonziDetection
 *.p
 *.pyc
+analysis_tool_python/crawler/uncle_sample/*
