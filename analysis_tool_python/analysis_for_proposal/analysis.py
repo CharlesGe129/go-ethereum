@@ -92,7 +92,7 @@ class Analysis:
 
     def count_uncles(self):
         print('In sample dataset: \n'
-              'From Tuesday, May 21, 2019 12:08:41 AM to Friday, June 21, 2019 6:54:41 AM')
+              'From Thursday, May 16, 2019 7:34:19 AM to Friday, June 21, 2019 6:54:41 AM')
         self.statistics(self.day_freq, "===================\nday freq")
         self.statistics(self.hour_freq, "===================\nhour freq")
         self.statistics(self.minute_freq, "===================\nminute freq")
@@ -119,7 +119,7 @@ class Analysis:
             middle = nums[int(len(nums) / 2)]
         else:
             middle = (nums[int(len(nums) / 2)] + nums[int(len(nums) / 2) - 1]) / 2
-        print(f"middle_count={middle}")
+        print(f"median_count={middle}")
 
     def test(self):
         # dt = datetime.fromtimestamp(0x5ce34189, timezone.utc)
@@ -129,13 +129,14 @@ class Analysis:
         # print(hex(new_int))
         # self.get_uncles_frequence()
         # print(self.hex_str_to_datetime('0x5ce34189'))
-        self.load_uncles()
-        print('In sample dataset: \n'
-              'From Tuesday, May 21, 2019 12:08:41 AM to Friday, June 21, 2019 6:54:41 AM')
+        # self.load_uncles()
+        # print('In sample dataset: \n'
+        #       'From Tuesday, May 21, 2019 12:08:41 AM to Friday, June 21, 2019 6:54:41 AM')
         print(len(self.uncles))
+
 
 if __name__ == '__main__':
     a = Analysis()
     a.start()
-    # a.test()
+    a.test()
     # a.get_uncles_frequence()
