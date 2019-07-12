@@ -1634,12 +1634,14 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"receiptHash=%s, nonce=%v, logsBloom=%s, " +
 				"number=%s, miner=%s, uncleNum=%d, " +
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
-				"size=%s, totalDifficulty=%s, timestamp=%s\n",
+				"size=%s, totalDifficulty=%s, extra=%s" +
+				"timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
 				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
-				block.Size().String(), block.DeprecatedTd().String(), time.Unix(int64(block.Time()), 0).String())
+				block.Size().String(), block.DeprecatedTd().String(), hex.EncodeToString(block.Extra()),
+				time.Unix(int64(block.Time()), 0).String())
 
 			for _, tx := range block.Transactions() {
 				v, r, s := tx.RawSignatureValues()
@@ -1691,13 +1693,15 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"number=%s, miner=%s, uncleNum=%d, " +
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 				"difficulty=%s, root=%s, mixDigest=%s, " +
-				"size=%s, totalDifficulty=%s, timestamp=%s\n",
+				"size=%s, totalDifficulty=%s, extra=%s" +
+				"timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
 				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
 				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
 				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
 				block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
-				block.Size().String(), block.DeprecatedTd().String(), time.Unix(int64(block.Time()), 0).String())
+				block.Size().String(), block.DeprecatedTd().String(), hex.EncodeToString(block.Extra()),
+				time.Unix(int64(block.Time()), 0).String())
 
 			for _, tx := range block.Transactions() {
 				v, r, s := tx.RawSignatureValues()
