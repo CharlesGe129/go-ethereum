@@ -16,9 +16,11 @@ class UncleCrawler:
     def start(self):
         started_at = datetime.now()
         i = 7800000
-        pool = Pool(5)
+        pool = Pool()
         # pool.map(partial(self.loop_10000_pages, thread_num=j), [i])
-        pool.map(self.loop_10000_pages, [i])
+        while True:
+            pool.map(self.loop_10000_pages, [i, i + 10000, i + 20000, i + 30000, i + 40000])
+            i -= 50000
 
     def loop_10000_pages(self, start_num):
         i = 0
@@ -37,21 +39,23 @@ class UncleCrawler:
     def load_uncles(self, api_key, base_url, uncle_number):
         uncle_index = 0
         while True:
-            data = self.load_page(base_url.format(hex(uncle_number), hex(uncle_index), api_key))
+            url = base_url.format(hex(uncle_number), hex(uncle_index), api_key)
+            data = self.load_page(url)
             if not data['result']:
                 return
             else:
                 self.save(data)
                 uncle_index += 1
 
-    def load_page(self, url):
+    @staticmethod
+    def load_page(url):
         print(url)
         content = requests.get(url).content
         data = json.loads(content)
         return data
-        # self.save(data)
 
-    def save(self, data):
+    @staticmethod
+    def save(data):
         height = int(data['result']['number'], 16)
         filename = f'./uncle/{int(height / 10000) * 10000}.txt'
         with open(filename, 'a') as f:
