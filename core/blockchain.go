@@ -1634,7 +1634,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"receiptHash=%s, nonce=%v, logsBloom=%s, " +
 				"number=%s, miner=%s, uncleNum=%d, " +
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
-				"size=%s, totalDifficulty=%s, extra=%s" +
+				"size=%s, totalDifficulty=%s, extra=%s, " +
 				"timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
 				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
@@ -1693,7 +1693,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"number=%s, miner=%s, uncleNum=%d, " +
 				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
 				"difficulty=%s, root=%s, mixDigest=%s, " +
-				"size=%s, totalDifficulty=%s, extra=%s" +
+				"size=%s, totalDifficulty=%s, extra=%s, " +
 				"timestamp=%s\n",
 				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
 				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
