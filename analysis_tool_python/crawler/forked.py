@@ -62,7 +62,6 @@ class ForkedCrawler:
             try:
                 content = requests.get(url, headers=headers).content
                 soup = BeautifulSoup(content, 'html.parser')
-                print(soup)
                 table = soup.find('table', {'class': 'table table-hover'})
                 rows = table.find('tbody').find_all('tr')
                 # 返回的lamdba表达式的详细内容
@@ -88,6 +87,7 @@ class ForkedCrawler:
         # the_page = response.read()
         # print(the_page)
         print(f"loading {url}")
+        time.sleep(0.5)
         # f_req = Request(url)
         # f_req.add_header("User-Agent",
         #                  "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36")
@@ -96,13 +96,9 @@ class ForkedCrawler:
         headers = {'user-agent': user_agent}
         while True:
             try:
-                # content = requests.get(url, headers=headers).content
-                content = requests.get(url).content
+                content = requests.get(url, headers=headers).content
                 soup = BeautifulSoup(content, 'html.parser')
-                # print('soup type', type(soup))
-                # print('soup: ', soup)
                 table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
-                # table = soup.find('div', {'class': 'card-body'})
                 return extract_detail_table(table)
             except Exception as e:
                 print(f"Error in func load_detail_page\n{e}\nreloading {url}")
