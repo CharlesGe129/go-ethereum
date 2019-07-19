@@ -4,9 +4,29 @@ import time
 from datetime import datetime
 from urllib.request import Request
 import urllib.parse
-
+from functools import wraps
 
 bs = BeautifulSoup
+
+
+def retry_wrapper(max_retry):
+    def decorate(fin):
+        @wraps(fin)
+        def fout(*args, **kwargs):
+            i = 0
+            msg = ""
+            while i < max_retry:
+                try:
+                    fin(*args, **kwargs)
+                    break
+                except Exception as e:
+                    msg += f"Err={e}\n"
+                    i += 1
+            return msg
+
+        return fout
+
+    return decorate
 
 
 def extract_detail_table(table):
@@ -25,12 +45,17 @@ def extract_detail_table(table):
     info['size'] = divs[8].text.strip('\n').split(' bytes')[0]
     info['gasUsed'] = divs[9].text.strip('\n').split(' (')[0]
     info['gasLimit'] = divs[10].string.strip('\n')
-    info['extraData'] = divs[11].string.strip('\n')
+    info['extraData'] = divs[11].string.strip('\n') if divs[11].string else ""
     info['hash'] = divs[12].string.strip('\n')
     info['parentHash'] = divs[13].string.strip('\n')
     info['sha3Uncles'] = divs[14].string.strip('\n')
     info['nonce'] = divs[15].string.strip('\n')
     return info
+
+
+def log_error(msg):
+    with open("forkedErrLog.txt", "a") as f:
+        f.write(msg)
 
 
 class ForkedCrawler:
@@ -42,15 +67,19 @@ class ForkedCrawler:
     def start(self):
         started_at = datetime.now()
         counter = 1
-        i = 49
+        i = 15
         while i <= 904:
             url = f"{self.base_url}{i}"
-            print(f"loading {url}")
+            print(f"loading list page {url}")
             forked_heights_list = self.load_list_page(url)
             for forked_height in forked_heights_list:
-                info = self.load_detail_page(self.raw_one_forked + forked_height + '/f')
-                self.save(info)
-                print(f"Average time for {counter} blocks: {((datetime.now()-started_at).seconds) / counter} seconds")
+                uri = self.raw_one_forked + forked_height + '/f'
+                err_msg = self.load_detail_page(uri)
+                if err_msg:
+                    log_error(f"uri={uri}\n{err_msg}")
+                else:
+                    print("Success!")
+                print(f"Average time for {counter} blocks: {((datetime.now() - started_at).seconds) / counter} seconds")
                 counter += 1
             i += 1
 
@@ -72,8 +101,8 @@ class ForkedCrawler:
             except Exception as e:
                 print(f"{e}\nreloading {url}")
 
-    @staticmethod
-    def load_detail_page(url):
+    @retry_wrapper(3)
+    def load_detail_page(self, url):
         # url = 'http://www.someserver.com/cgi-bin/register.cgi'
         # user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
         # values = {'name': 'Michael Foord',
@@ -86,22 +115,20 @@ class ForkedCrawler:
         # response = urllib.request.urlopen(req)
         # the_page = response.read()
         # print(the_page)
-        print(f"loading {url}")
-        time.sleep(0.5)
+        print(f"[{datetime.now()}]loading {url}")
+        time.sleep(1)
         # f_req = Request(url)
         # f_req.add_header("User-Agent",
         #                  "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36")
 
         user_agent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36"
         headers = {'user-agent': user_agent}
-        while True:
-            try:
-                content = requests.get(url, headers=headers).content
-                soup = BeautifulSoup(content, 'html.parser')
-                table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
-                return extract_detail_table(table)
-            except Exception as e:
-                print(f"Error in func load_detail_page\n{e}\nreloading {url}")
+
+        content = requests.get(url, headers=headers).content
+        soup = BeautifulSoup(content, 'html.parser')
+        table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
+        info = extract_detail_table(table)
+        self.save(info)
 
     @staticmethod
     def parse_timestamp(info):
@@ -146,6 +173,7 @@ class ForkedCrawler:
     def test(self):
         test_page_content = self.load_detail_page('https://etherscan.io/block/6222544/f')
         print(test_page_content)
+
 
 if __name__ == '__main__':
     ForkedCrawler().start()

@@ -53,3 +53,5 @@ SmartPonziDetection
 *.p
 *.pyc
 analysis_tool_python/crawler/uncle_sample/*
+analysis_tool_python/crawler/forked/*
+analysis_tool_python/crawler/uncle/*
