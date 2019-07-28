@@ -20,7 +20,8 @@ def retry_wrapper(max_retry):
                     fin(*args, **kwargs)
                     break
                 except Exception as e:
-                    msg += f"Err={e}\n"
+                    print(e)
+                    msg += f"[{time.time()}]Err={e}\n"
                     i += 1
             return msg
 
@@ -34,7 +35,10 @@ def extract_detail_table(table):
     divs = table.find_all('div', {'class': 'col-md-9'})
     info['blockHeight'] = divs[0].find('span').string.strip('\n')
     info['timeStampUnformated'] = str(divs[1]).split('\n')[-2].split('(')[1].strip(')')
-    info['reorgDepth'] = divs[2].string.strip('\n').split('block')[0].strip()
+    try:
+        info['reorgDepth'] = divs[2].string.strip('\n').split('block')[0].strip()
+    except:
+        divs = divs[:2] + [''] + divs[2:]
     info['minerHash'] = divs[3].find('a').string.split(' ')[0]
     info['miner'] = divs[3].find('b').string if divs[3].find('b') else ''
     info['mineTime'] = divs[3].text.split('in ')[1].split(' secs')[0]
@@ -67,12 +71,17 @@ class ForkedCrawler:
     def start(self):
         started_at = datetime.now()
         counter = 1
-        i = 15
-        while i <= 904:
+        i = 0
+        while i <= 940:
             url = f"{self.base_url}{i}"
             print(f"loading list page {url}")
             forked_heights_list = self.load_list_page(url)
             for forked_height in forked_heights_list:
+                if i > 900 and int(forked_height) > 2242199:
+                    continue
+                elif i < 100 and int(forked_height) <= 8174751:
+                    i = 904
+                    break
                 uri = self.raw_one_forked + forked_height + '/f'
                 err_msg = self.load_detail_page(uri)
                 if err_msg:
@@ -83,13 +92,27 @@ class ForkedCrawler:
                 counter += 1
             i += 1
 
+    def retry_error(self):
+        started_at = datetime.now()
+        counter = 1
+
+        uris = ['https://etherscan.io/block/7814601/f', 'https://etherscan.io/block/7780126/f', 'https://etherscan.io/block/7775512/f', 'https://etherscan.io/block/7750224/f', 'https://etherscan.io/block/7741255/f', 'https://etherscan.io/block/7741021/f', 'https://etherscan.io/block/7740849/f', 'https://etherscan.io/block/7740106/f', 'https://etherscan.io/block/7721891/f', 'https://etherscan.io/block/6404501/f', 'https://etherscan.io/block/6284670/f', 'https://etherscan.io/block/6284665/f', 'https://etherscan.io/block/6284394/f', 'https://etherscan.io/block/6284342/f', 'https://etherscan.io/block/6283568/f', 'https://etherscan.io/block/6283313/f', 'https://etherscan.io/block/6283223/f', 'https://etherscan.io/block/6283124/f', 'https://etherscan.io/block/6283049/f', 'https://etherscan.io/block/6283007/f', 'https://etherscan.io/block/6282959/f', 'https://etherscan.io/block/6212900/f', 'https://etherscan.io/block/6206090/f', 'https://etherscan.io/block/6200097/f', 'https://etherscan.io/block/6181576/f', 'https://etherscan.io/block/6138983/f', 'https://etherscan.io/block/6102703/f', 'https://etherscan.io/block/6052559/f', 'https://etherscan.io/block/5872184/f', 'https://etherscan.io/block/5825178/f', 'https://etherscan.io/block/5804509/f', 'https://etherscan.io/block/5761899/f', 'https://etherscan.io/block/5756106/f', 'https://etherscan.io/block/5746482/f', 'https://etherscan.io/block/5744617/f', 'https://etherscan.io/block/5738175/f', 'https://etherscan.io/block/5734321/f', 'https://etherscan.io/block/5734109/f', 'https://etherscan.io/block/5733099/f', 'https://etherscan.io/block/5716907/f', 'https://etherscan.io/block/5708212/f', 'https://etherscan.io/block/5700837/f', 'https://etherscan.io/block/5697476/f', 'https://etherscan.io/block/5696633/f', 'https://etherscan.io/block/5691421/f', 'https://etherscan.io/block/5676659/f', 'https://etherscan.io/block/5657171/f', 'https://etherscan.io/block/5654873/f', 'https://etherscan.io/block/5171669/f', 'https://etherscan.io/block/5127140/f', 'https://etherscan.io/block/5126930/f', 'https://etherscan.io/block/5126738/f', 'https://etherscan.io/block/5126689/f', 'https://etherscan.io/block/5126672/f', 'https://etherscan.io/block/5016415/f', 'https://etherscan.io/block/4929016/f', 'https://etherscan.io/block/4713624/f', 'https://etherscan.io/block/4681650/f', 'https://etherscan.io/block/4679270/f', 'https://etherscan.io/block/4676378/f', 'https://etherscan.io/block/4676361/f', 'https://etherscan.io/block/4664759/f', 'https://etherscan.io/block/4653709/f', 'https://etherscan.io/block/4640611/f', 'https://etherscan.io/block/4612032/f', 'https://etherscan.io/block/4500785/f', 'https://etherscan.io/block/4435540/f', 'https://etherscan.io/block/4414142/f', 'https://etherscan.io/block/4378156/f', 'https://etherscan.io/block/4369221/f', 'https://etherscan.io/block/4365310/f', 'https://etherscan.io/block/4361298/f', 'https://etherscan.io/block/4337986/f', 'https://etherscan.io/block/4270949/f', 'https://etherscan.io/block/4218107/f', 'https://etherscan.io/block/4210187/f', 'https://etherscan.io/block/4200526/f', 'https://etherscan.io/block/4189811/f', 'https://etherscan.io/block/4186633/f', 'https://etherscan.io/block/4171459/f', 'https://etherscan.io/block/4168745/f', 'https://etherscan.io/block/4156639/f', 'https://etherscan.io/block/4152936/f', 'https://etherscan.io/block/4152566/f', 'https://etherscan.io/block/4123752/f', 'https://etherscan.io/block/4097920/f', 'https://etherscan.io/block/4092666/f', 'https://etherscan.io/block/4071331/f', 'https://etherscan.io/block/4063964/f', 'https://etherscan.io/block/3988826/f', 'https://etherscan.io/block/3967840/f', 'https://etherscan.io/block/3967170/f', 'https://etherscan.io/block/3965847/f', 'https://etherscan.io/block/3926449/f', 'https://etherscan.io/block/3920296/f', 'https://etherscan.io/block/2343133/f', 'https://etherscan.io/block/8214399/f', 'https://etherscan.io/block/8213080/f', 'https://etherscan.io/block/8211212/f', 'https://etherscan.io/block/8210050/f', 'https://etherscan.io/block/8207760/f', 'https://etherscan.io/block/8202686/f', 'https://etherscan.io/block/8200953/f', 'https://etherscan.io/block/8198809/f', 'https://etherscan.io/block/8196831/f', 'https://etherscan.io/block/8194046/f', 'https://etherscan.io/block/8184472/f', 'https://etherscan.io/block/2175148/f', 'https://etherscan.io/block/2173109/f', 'https://etherscan.io/block/2131500/f']
+        for uri in uris:
+            err_msg = self.load_detail_page(uri)
+            if err_msg:
+                log_error(f"uri={uri}\n{err_msg}")
+            else:
+                print("Success!")
+            print(f"Average time for {counter} blocks: {((datetime.now() - started_at).seconds) / counter} seconds")
+            counter += 1
+
     @staticmethod
     def load_list_page(url):
         user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36"
         headers = {'user-agent': user_agent}
         while True:
             try:
-                content = requests.get(url, headers=headers).content
+                content = requests.get(url, headers=headers, timeout=30).content
                 soup = BeautifulSoup(content, 'html.parser')
                 table = soup.find('table', {'class': 'table table-hover'})
                 rows = table.find('tbody').find_all('tr')
@@ -124,7 +147,7 @@ class ForkedCrawler:
         user_agent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36"
         headers = {'user-agent': user_agent}
 
-        content = requests.get(url, headers=headers).content
+        content = requests.get(url, headers=headers, timeout=30).content
         soup = BeautifulSoup(content, 'html.parser')
         table = soup.find('div', {'class': 'card'}).find('div', {'class': 'card-body'})
         info = extract_detail_table(table)
@@ -176,6 +199,7 @@ class ForkedCrawler:
 
 
 if __name__ == '__main__':
-    ForkedCrawler().start()
+    # ForkedCrawler().start()
+    ForkedCrawler().retry_error()
     # test_f = ForkedCrawler()
     # test_f.test()
