@@ -13,12 +13,14 @@ class FormatCheck:
                 continue
             print(filename)
             with open(f"{self.path}{filename}") as f:
+                i = 0
                 while True:
+                    i += 1
                     line = f.readline()
                     if not line:
                         break
                     if not line.startswith("blockHeight="):
-                        print(line)
+                        print(f"#{i}: {line}")
                         if filename not in self.wrong_format:
                             self.wrong_format[filename] = list()
                         self.wrong_format[filename].append(line)
@@ -29,6 +31,7 @@ class FormatCheck:
         print(self.wrong_format)
         print(self.wrong_format_set)
         print(len(self.wrong_format_set))
+
 
 if __name__ == "__main__":
     FormatCheck().start()

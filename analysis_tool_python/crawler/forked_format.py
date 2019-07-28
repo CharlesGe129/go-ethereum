@@ -9,11 +9,19 @@ class FormatTwoLines:
         for filename in sorted(os.listdir(self.path)):
             if not filename.endswith(".txt"):
                 continue
-            print(filename)
-            with open(f"{self.path}{filename}") as f:
-                content = f.read()
-            content = content.replace("\n ,parentHash=", " ,parentHash=")
-            with open(f"{self.path}{filename}", "w") as f:
+            filename = f"{self.path}{filename}"
+            with open(filename) as f:
+                lines = f.readlines()
+            content = ""
+            for i in range(len(lines)):
+                line = lines[i].strip("\n")
+                if not line:
+                    continue
+                elif line.startswith("blockHeight="):
+                    if content:
+                        content += "\n"
+                content += line
+            with open(filename, "w") as f:
                 f.write(content)
 
 
