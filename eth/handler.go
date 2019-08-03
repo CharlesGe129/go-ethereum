@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/jsong"
 	"math"
 	"math/big"
 	"os"
@@ -61,6 +62,9 @@ const (
 var (
 	syncChallengeTimeout = 15 * time.Second // Time allowance for a node to reply to the sync progress challenge
 )
+
+type Tx struct {
+}
 
 // errIncompatibleConfig is returned if the requested protocols and configs are
 // not compatible (low protocol version restrictions and high requirements).
@@ -705,24 +709,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		request.Block.ReceivedFrom = p
 		// ================================================================================
 		block := request.Block
-		hashValue := block.Hash()
-		parentHash := block.ParentHash()
-		uncleHash := block.UncleHash()
-		contentToRecord := fmt.Sprintf("[HandlerNewBlockMsg]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
-			"receiptHash=%s, nonce=%v, logsBloom=%s, " +
-			"number=%s, miner=%s, uncleNum=%d, " +
-			"txNum=%d, gasUsed=%d, gasLimit=%d, " +
-			"difficulty=%s, root=%s, mixDigest=%s, " +
-			"size=%s, totalDifficulty=%s, extra=%s, " +
-			"timestamp=%s\n",
-			common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-			block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
-			block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
-			len(block.Transactions()), block.GasUsed(), block.GasLimit(),
-			block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
-			block.Size().String(), block.DeprecatedTd().String(), hex.EncodeToString(block.Extra()),
-			time.Unix(int64(block.Time()),  0).String())
-
+		contentToRecord := jsong.BlockToJson(block)
 		signer := types.MakeSigner(pm.chainconfig, block.Number())
 		var from, to string
 		for _, tx := range block.Transactions() {
@@ -739,9 +726,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				to = tx.To().String()
 			}
 			// Cost returns amount + gasprice * gaslimit.
-			contentToRecord += fmt.Sprintf("tx hash=%s, from=%s, to=%s, gasPrice=%v, " +
-				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
-				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
+			contentToRecord += fmt.Sprintf("tx hash=%s, from=%s, to=%s, gasPrice=%v, "+
+				"ammount=%v, gas=%v, nonce=%v, payload=%s, "+ // gas is gasLimit; value = amount
+				"checkNonce=%v, signV=%v, signR=%v, signS=%v, "+
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				tx.Hash().String(), from, to, tx.GasPrice(),
 				tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
@@ -804,10 +791,10 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				to = tx.To().String()
 			}
 			// Cost returns amount + gasprice * gaslimit.
-			content := fmt.Sprintf("tx hash=%s, to=%s, gasPrice=%v, " +
-				"ammount=%v, gas=%v, nonce=%v, payload=%s, " + // gas is gasLimit; value = amount
-				"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
-				"peerLocal=%s, peerRemote=%s, " +
+			content := fmt.Sprintf("tx hash=%s, to=%s, gasPrice=%v, "+
+				"ammount=%v, gas=%v, nonce=%v, payload=%s, "+ // gas is gasLimit; value = amount
+				"checkNonce=%v, signV=%v, signR=%v, signS=%v, "+
+				"peerLocal=%s, peerRemote=%s, "+
 				"chainId=%v, protected=%v, size=%s, cost=%v\n",
 				//tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
 				tx.Hash().String(), to, tx.GasPrice(),
@@ -846,13 +833,13 @@ func recordTx(content string, timeNow string) {
 	timeList := strings.Split(timeNow, " ")
 	timeNow = timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
 	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
-	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
+	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
 }
 
 func recordBlock(content string, timeNow string) {
 	timeNow = strings.Split(timeNow, " ")[0]
 	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
-	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
+	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
 }
 
 func appendToFile(fileName string, content string) error {
@@ -871,6 +858,7 @@ func appendToFile(fileName string, content string) error {
 	defer f.Close()
 	return err
 }
+
 // ================================================================================
 
 // BroadcastBlock will either propagate a block to a subset of it's peers, or
