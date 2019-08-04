@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/jsong"
 	"io"
 	"math/big"
 	mrand "math/rand"
@@ -1625,23 +1626,9 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"elapsed", common.PrettyDuration(time.Since(start)),
 				"root", block.Root())
 
-			hashValue := block.Hash()
-			parentHash := block.ParentHash()
-			uncleHash := block.UncleHash()
 			signer := types.MakeSigner(bc.Config(), block.Number())
 			var from, to string
-			contentToRecord := fmt.Sprintf("[Inserted]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
-				"receiptHash=%s, nonce=%v, logsBloom=%s, " +
-				"number=%s, miner=%s, uncleNum=%d, " +
-				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
-				"size=%s, totalDifficulty=%s, extra=%s, " +
-				"timestamp=%s\n",
-				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
-				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
-				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
-				block.Size().String(), block.DeprecatedTd().String(), hex.EncodeToString(block.Extra()),
-				time.Unix(int64(block.Time()), 0).String())
+			contentToRecord := jsong.BlockToJson(block)
 
 			for _, tx := range block.Transactions() {
 				v, r, s := tx.RawSignatureValues()
@@ -1683,25 +1670,9 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"txs", len(block.Transactions()), "gas", block.GasUsed(), "uncles", len(block.Uncles()),
 				"root", block.Root())
 
-			hashValue := block.Hash()
-			parentHash := block.ParentHash()
-			uncleHash := block.UncleHash()
 			signer := types.MakeSigner(bc.Config(), block.Number())
 			var from, to string
-			contentToRecord := fmt.Sprintf("[InsertedFork]Block Hash=%s, parentHash=%s, uncleHash=%s, " +
-				"receiptHash=%s, nonce=%v, logsBloom=%s, " +
-				"number=%s, miner=%s, uncleNum=%d, " +
-				"txNum=%d, gasUsed=%d, gasLimit=%d, " +
-				"difficulty=%s, root=%s, mixDigest=%s, " +
-				"size=%s, totalDifficulty=%s, extra=%s, " +
-				"timestamp=%s\n",
-				common.ToHex((&hashValue)[:]), common.ToHex((&parentHash)[:]), common.ToHex((&uncleHash)[:]),
-				block.ReceiptHash().String(), block.Nonce(), hex.EncodeToString(block.Bloom().Bytes()),
-				block.Number().String(), block.Header().Coinbase.String(), len(block.Uncles()),
-				len(block.Transactions()), block.GasUsed(), block.GasLimit(),
-				block.Difficulty().String(), block.Root().String(), block.MixDigest().String(),
-				block.Size().String(), block.DeprecatedTd().String(), hex.EncodeToString(block.Extra()),
-				time.Unix(int64(block.Time()), 0).String())
+			contentToRecord := jsong.BlockToJson(block)
 
 			for _, tx := range block.Transactions() {
 				v, r, s := tx.RawSignatureValues()
