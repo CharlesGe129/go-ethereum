@@ -34,7 +34,7 @@ type Block struct {
 }
 
 func BlockToJson(block *types.Block) string {
-	var uncles []string
+	uncles := make([]string, 0)
 	for _, uncle := range block.Uncles() {
 		uncles = append(uncles, uncle.Hash().String())
 	}
