@@ -31,7 +31,7 @@ class BroadcastToJson:
                 continue
             line += ","
             data = dict()
-            data['difficulty'] = ''
+            data['difficulty'] = load_file.load_field(line, 'difficulty')
             extra_str = load_file.load_field(line, 'extra')
             if 'timestamp' in extra_str:
                 data['extraData'] = extra_str.split('timestamp')[0]
