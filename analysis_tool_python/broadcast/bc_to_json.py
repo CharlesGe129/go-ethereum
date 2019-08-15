@@ -24,11 +24,8 @@ class BroadcastToJson:
     def file_to_json(self, path, filename, save_path):
         content = ""
         for line in load_file.load_file_yield_lines(path, filename):
-            print(line)
-            # if line.startswith('0x') or line.startswith("tx"):
-            #     # tx line
-            #     continue
             if not line.startswith('[20'):
+                # Ignore TX lines or empty lines
                 continue
             line += ","
             data = Block()
