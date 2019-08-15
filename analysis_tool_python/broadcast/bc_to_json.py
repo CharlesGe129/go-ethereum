@@ -1,6 +1,7 @@
 import time
 import json
 from datetime import datetime
+from analysis_tool_python.util.models.block import Block
 from util import load_file, time_format
 
 
@@ -30,8 +31,50 @@ class BroadcastToJson:
             if not line.startswith('[20'):
                 continue
             line += ","
+            data = Block()
+            data.difficulty = load_file.load_field(line, 'difficulty')
+            extra_str = load_file.load_field(line, 'extra')
+            if 'timestamp' in extra_str:
+                data.extraData = extra_str.split('timestamp')[0]
+            else:
+                data.extraData = extra_str
+            gas_limit_str = load_file.load_field(line, 'gasLimit')
+            data.gasLimit = hex(int(gas_limit_str)) if gas_limit_str != '' else 0
+            gas_used_str = load_file.load_field(line, 'gasUsed')
+            data.gasUsed = hex(int(gas_used_str)) if gas_used_str != '' else 0
+            data.hash = load_file.load_field(line, 'Block Hash')
+            data.logsBloom = load_file.load_field(line, 'logsBloom')
+            data.miner = load_file.load_field(line, 'miner')
+            data.mixHash = ''
+            data.nonce = load_file.load_field(line, 'nonce')
+            data.number = load_file.load_field(line, 'number')
+            data.parentHash = load_file.load_field(line, 'parentHash')
+            data.receiptsRoot = load_file.load_field(line, 'receiptHash')
+            data.sha3Uncles = ''
+            data.size = self.format_size(load_file.load_field(line, 'size'))
+            data.stateRoot = ''
+            time_str = load_file.load_field(line, 'timestamp')
+            data.timestamp = time_format.load_time_to_utc_unix(time_str, "%Y-%m-%d %H:%M:%S")
+            data.totalDifficulty = ''
+            data.transactions = ''
+            data.transactionsRoot = ''
+            data.uncles = [load_file.load_field(line, 'uncleHash')]
+            data.uncleNum = load_file.load_field(line, 'uncleNum')
+            data.txNum = load_file.load_field(line, 'txNum')
+            content += data.to_json() + '\n'
+        with open(save_path + filename.replace('.txt', '.json'), 'w') as f:
+            # each line is a JSON, not the entire file
+            f.write(content)
+
+    def file_to_json_backup(self, path, filename, save_path):
+        content = ""
+        for line in load_file.load_file_yield_lines(path, filename):
+            if line.startswith('0x') or line.startswith("tx"):
+                # tx line
+                continue
+            line += ","
             data = dict()
-            data['difficulty'] = load_file.load_field(line, 'difficulty')
+            data['difficulty'] = ''
             extra_str = load_file.load_field(line, 'extra')
             if 'timestamp' in extra_str:
                 data['extraData'] = extra_str.split('timestamp')[0]
