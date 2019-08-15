@@ -1,6 +1,7 @@
 import json
 from collections import OrderedDict
 
+
 class Block:
     def __init__(self):
         self.difficulty = ""
