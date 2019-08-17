@@ -25,12 +25,12 @@ class Block:
         self.stateRoot = ""
         self.timestamp = 0
         self.totalDifficulty = ""
-        self.transactions = ""
+        self.transactions = []
         self.transactionsRoot = ""
         self.txNum = 0
         self.uncleNum = 0
         self.uncleReward = ""
-        self.uncles = ""
+        self.uncles = []
 
     def to_json(self):
         block_dict = OrderedDict()

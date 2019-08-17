@@ -33,6 +33,13 @@ def load_field(line, field):
         return ''
 
 
+def load_field_from_dict(data, field, default=''):
+    if field in data:
+        return data[field]
+    else:
+        return default
+
+
 def check_dir_exist(path):
     if not os.path.isdir(path):
         os.mkdir(path)
