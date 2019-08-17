@@ -14,7 +14,7 @@ class Block:
         self.miner = ""
         self.minerName = ""
         self.mixHash = ""
-        self.nonce = 0
+        self.nonce = ""
         self.number = 0
         self.parentHash = ""
         self.receiptsRoot = ""

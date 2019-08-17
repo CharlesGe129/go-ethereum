@@ -43,7 +43,7 @@ class ApiToJson:
             data.gasUsed = int(load_file.load_field_from_dict(content, "gasUsed", data.gasUsed), 16)
             data.hash = load_file.load_field_from_dict(content, "hash", data.hash)
             data.logsBloom = load_file.load_field_from_dict(content, "logsBloom", data.logsBloom)
-            data.nonce = int(load_file.load_field_from_dict(content, "nonce", data.nonce), 16)
+            data.nonce = load_file.load_field_from_dict(content, "nonce", data.nonce)
             data.number = int(load_file.load_field_from_dict(content, "number", data.number), 16)
             data.size = int(load_file.load_field_from_dict(content, "size", data.size), 16)
             data.timestamp = int(load_file.load_field_from_dict(content, "timestamp", data.timestamp), 16)
