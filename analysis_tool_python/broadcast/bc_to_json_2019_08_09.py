@@ -11,7 +11,8 @@ class BroadcastToJson:
         self.save_path = '../../records/block_json/'
 
     def start(self):
-        for folder in ['ali_2019_08_09/', 'aws_2019_08_09/']:
+        # for folder in ['ali_2019_08_09/', 'aws_2019_08_09/']:
+        for folder in ['aws_2019_08_09/']:
             save_path = self.save_path + folder
             load_file.check_dir_exist(self.save_path)
             load_file.check_dir_exist(save_path)
@@ -53,6 +54,10 @@ class BroadcastToJson:
             print('split line: ' + line)
             tmp_json = json.loads(line)
             tmp_json['nonce'] = str(tmp_json['nonce'])
+            tmp_json['timestamp'] = str(tmp_json['timestamp'])
+            tmp_json['gasUsed'] = str(tmp_json['gasUsed'])
+            tmp_json['gasLimit'] = str(tmp_json['gasLimit'])
+            tmp_json['txNum'] = str(tmp_json['txNum'])
             line = json.dumps(tmp_json)
             # test_line_json = json.loads(line)
             # # print('test line json:' + test_line_json)
