@@ -709,37 +709,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		request.Block.ReceivedFrom = p
 		// ================================================================================
 		block := request.Block
-		contentToRecord := jsong.BlockToJson(block)
 		signer := types.MakeSigner(pm.chainconfig, block.Number())
-		var from, to string
-		for _, tx := range block.Transactions() {
-			v, r, s := tx.RawSignatureValues()
-			msg, err := tx.AsMessage(signer)
-			if err != nil {
-				from = "error"
-			} else {
-				from = msg.From().String()
-			}
-			if tx.To() == nil {
-				to = ""
-			} else {
-				to = tx.To().String()
-			}
-			// Cost returns amount + gasprice * gaslimit.
-			contentToRecord += fmt.Sprintf("tx hash=%s, from=%s, to=%s, gasPrice=%v, "+
-				"ammount=%v, gas=%v, nonce=%v, payload=%s, "+ // gas is gasLimit; value = amount
-				"checkNonce=%v, signV=%v, signR=%v, signS=%v, "+
-				"chainId=%v, protected=%v, size=%s, cost=%v\n",
-				tx.Hash().String(), from, to, tx.GasPrice(),
-				tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
-				tx.CheckNonce(), v, r, s,
-				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
-
-			//hashValue := tx.Hash()
-
-			//contentToRecord += common.ToHex((&hashValue)[:]) + ", "
-		}
-		recordBlock(contentToRecord, time.Now().String())
+		queue := jsong.GetBlockQueue()
+		queue.EnQueue(block, &signer)
 		// ================================================================================
 
 		// Mark the peer as owning the block and schedule it for import
@@ -833,12 +805,6 @@ func recordTx(content string, timeNow string) {
 	timeList := strings.Split(timeNow, " ")
 	timeNow = timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
 	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
-	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
-}
-
-func recordBlock(content string, timeNow string) {
-	timeNow = strings.Split(timeNow, " ")[0]
-	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
 	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
 }
 

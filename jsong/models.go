@@ -3,7 +3,6 @@ package jsong
 import (
 	"encoding/hex"
 	"encoding/json"
-
 	"github.com/ethereum/go-ethereum/core/types"
 )
 

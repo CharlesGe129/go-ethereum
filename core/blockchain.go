@@ -18,7 +18,6 @@
 package core
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/jsong"
@@ -1627,35 +1626,8 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"root", block.Root())
 
 			signer := types.MakeSigner(bc.Config(), block.Number())
-			var from, to string
-			contentToRecord := jsong.BlockToJson(block)
-
-			for _, tx := range block.Transactions() {
-				v, r, s := tx.RawSignatureValues()
-				msg, err := tx.AsMessage(signer)
-				if err != nil {
-					from = "error"
-				} else {
-					from = msg.From().String()
-				}
-				if tx.To() == nil {
-					to = ""
-				} else {
-					to = tx.To().String()
-				}
-				fmt.Println("payload")
-				fmt.Println(tx.Data())
-				// Cost returns amount + gasprice * gaslimit.
-				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
-					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
-					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
-					"chainId=%v, protected=%v, size=%s, cost=%v\n",
-					tx.Hash().String(), from, to, tx.GasPrice(),
-					tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
-					tx.CheckNonce(), v, r, s,
-					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
-			}
-			recordBlock(contentToRecord, time.Now().String())
+			queue := jsong.GetBlockQueue()
+			queue.EnQueue(block, &signer)
 
 			coalescedLogs = append(coalescedLogs, logs...)
 			events = append(events, ChainEvent{block, block.Hash(), logs})
@@ -1671,33 +1643,8 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 				"root", block.Root())
 
 			signer := types.MakeSigner(bc.Config(), block.Number())
-			var from, to string
-			contentToRecord := jsong.BlockToJson(block)
-
-			for _, tx := range block.Transactions() {
-				v, r, s := tx.RawSignatureValues()
-				msg, err := tx.AsMessage(signer)
-				if err != nil {
-					from = "error"
-				} else {
-					from = msg.From().String()
-				}
-				if tx.To() == nil {
-					to = ""
-				} else {
-					to = tx.To().String()
-				}
-				// Cost returns amount + gasprice * gaslimit.
-				contentToRecord += fmt.Sprintf("tx, hash=%s, from=%s, to=%s, gasPrice=%v, " +
-					"ammount=%v, gas=%v, nonce=%v, payload=%s, " +
-					"checkNonce=%v, signV=%v, signR=%v, signS=%v, " +
-					"chainId=%v, protected=%v, size=%s, cost=%v\n",
-					tx.Hash().String(), from, to, tx.GasPrice(),
-					tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
-					tx.CheckNonce(), v, r, s,
-					tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
-			}
-			recordBlock(contentToRecord, time.Now().String())
+			queue := jsong.GetBlockQueue()
+			queue.EnQueue(block, &signer)
 
 			events = append(events, ChainSideEvent{block})
 
@@ -1736,12 +1683,6 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 		events = append(events, ChainHeadEvent{lastCanon})
 	}
 	return it.index, events, coalescedLogs, err
-}
-
-func recordBlock(content string, timeNow string) {
-	timeNow = strings.Split(timeNow, " ")[0]
-	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
-	appendToFile(filename, "[" + time.Now().String() + "] " + content + "\n")
 }
 
 func appendToFile(fileName string, content string) error {
