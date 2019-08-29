@@ -24,8 +24,6 @@ import (
 	"io"
 	"math/big"
 	mrand "math/rand"
-	"os"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
