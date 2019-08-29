@@ -1,10 +1,8 @@
 package jsong
 
 import (
-	"sync"
-	"time"
-
 	"github.com/ethereum/go-ethereum/core/types"
+	"sync"
 )
 
 var (
@@ -14,14 +12,15 @@ var (
 
 func GetBlockQueue() *BlockQueue {
 	once.Do(func() {
-		queue := &BlockQueue{
+		queue = &BlockQueue{
 			blocks: make(chan BlockWithSigner, 10),
 		}
 		go func() {
-			time.Sleep(time.Second)
-			for len(queue.blocks) > 0 {
-				bs := queue.DeQueue()
-				BlockToFile(bs.Block, bs.Signer)
+			for {
+				select {
+				case bs := <-queue.blocks:
+					BlockToFile(bs.Block, bs.Signer)
+				}
 			}
 		}()
 	})
