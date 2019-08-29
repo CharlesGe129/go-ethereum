@@ -1,9 +1,10 @@
 package jsong
 
 import (
-	"github.com/ethereum/go-ethereum/core/types"
 	"sync"
 	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 func GetBlockQueue() *BlockQueue {
 	once.Do(func() {
 		queue := &BlockQueue{
-			blocks: make([]BlockWithSigner, 0),
+			blocks: make(chan BlockWithSigner, 10),
 		}
 		go func() {
 			time.Sleep(time.Second)
@@ -33,23 +34,16 @@ type BlockWithSigner struct {
 }
 
 type BlockQueue struct {
-	blocks []BlockWithSigner
-	mux    sync.Mutex
+	blocks chan BlockWithSigner
 }
 
 func (queue *BlockQueue) EnQueue(b *types.Block, signer *types.Signer) {
-	queue.mux.Lock()
-	queue.blocks = append(queue.blocks, BlockWithSigner{
+	queue.blocks <- BlockWithSigner{
 		Block:  b,
 		Signer: signer,
-	})
-	queue.mux.Unlock()
+	}
 }
 
 func (queue *BlockQueue) DeQueue() BlockWithSigner {
-	queue.mux.Lock()
-	bs := queue.blocks[0]
-	queue.blocks = queue.blocks[1:]
-	queue.mux.Unlock()
-	return bs
+	return <-queue.blocks
 }
