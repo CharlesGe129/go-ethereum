@@ -1,35 +1,38 @@
 package jsong
 
 import (
-	"github.com/ethereum/go-ethereum/core/types"
 	"sync"
+	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
-	once  sync.Once
-	queue *BlockQueue
+	blockOnce  sync.Once
+	blockQueue *BlockQueue
 )
 
 func GetBlockQueue() *BlockQueue {
-	once.Do(func() {
-		queue = &BlockQueue{
+	blockOnce.Do(func() {
+		blockQueue = &BlockQueue{
 			blocks: make(chan BlockWithSigner, 10),
 		}
 		go func() {
 			for {
 				select {
-				case bs := <-queue.blocks:
-					BlockToFile(bs.Block, bs.Signer)
+				case bs := <-blockQueue.blocks:
+					BlockToFile(bs.Block, bs.Signer, bs.TimeNow)
 				}
 			}
 		}()
 	})
-	return queue
+	return blockQueue
 }
 
 type BlockWithSigner struct {
-	Block  *types.Block
-	Signer *types.Signer
+	Block   *types.Block
+	Signer  *types.Signer
+	TimeNow string
 }
 
 type BlockQueue struct {
@@ -38,8 +41,9 @@ type BlockQueue struct {
 
 func (queue *BlockQueue) EnQueue(b *types.Block, signer *types.Signer) {
 	queue.blocks <- BlockWithSigner{
-		Block:  b,
-		Signer: signer,
+		Block:   b,
+		Signer:  signer,
+		TimeNow: time.Now().String(),
 	}
 }
 

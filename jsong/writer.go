@@ -9,7 +9,12 @@ import (
 	"time"
 )
 
-func BlockToFile(block *types.Block, signer *types.Signer) {
+func TxToFile(tx *types.Transaction, localAddr, remoteAddr, timeNow string) {
+	contentToRecord := TxToJson(tx, localAddr, remoteAddr)
+	recordTx(contentToRecord, timeNow)
+}
+
+func BlockToFile(block *types.Block, signer *types.Signer, timeNow string) {
 	contentToRecord := BlockToJson(block)
 	var from, to string
 	for _, tx := range block.Transactions() {
@@ -36,11 +41,17 @@ func BlockToFile(block *types.Block, signer *types.Signer) {
 			tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
 	}
 
-	recordBlock(contentToRecord)
+	recordBlock(contentToRecord, timeNow)
 }
 
-func recordBlock(content string) {
-	now := time.Now().String()
+func recordTx(content string, now string) {
+	timeList := strings.Split(now, " ")
+	timeNow := timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
+	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
+	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
+}
+
+func recordBlock(content string, now string) {
 	timeNow := strings.Split(now, " ")[0]
 	filename := "records/blocks/" + strings.Split(timeNow, " ")[0] + ".txt"
 	appendToFile(filename, fmt.Sprintf("[%s] %s\n", now, content))

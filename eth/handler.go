@@ -17,19 +17,16 @@
 package eth
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/jsong"
 	"math"
 	"math/big"
-	"os"
-	//"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/ethereum/go-ethereum/jsong"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -710,8 +707,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		// ================================================================================
 		block := request.Block
 		signer := types.MakeSigner(pm.chainconfig, block.Number())
-		queue := jsong.GetBlockQueue()
-		queue.EnQueue(block, &signer)
+		jsong.GetBlockQueue().EnQueue(block, &signer)
 		// ================================================================================
 
 		// Mark the peer as owning the block and schedule it for import
@@ -747,7 +743,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&txs); err != nil {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
-		var to string
+		txQueue := jsong.GetTxQueue()
 		for i, tx := range txs {
 			// Validate and mark the remote transaction
 			if tx == nil {
@@ -756,38 +752,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 
 			// ================================================================================
 			// Record Tx and time
-			v, r, s := tx.RawSignatureValues()
-			if tx.To() == nil {
-				to = ""
-			} else {
-				to = tx.To().String()
-			}
-			// Cost returns amount + gasprice * gaslimit.
-			content := fmt.Sprintf("tx hash=%s, to=%s, gasPrice=%v, "+
-				"ammount=%v, gas=%v, nonce=%v, payload=%s, "+ // gas is gasLimit; value = amount
-				"checkNonce=%v, signV=%v, signR=%v, signS=%v, "+
-				"peerLocal=%s, peerRemote=%s, "+
-				"chainId=%v, protected=%v, size=%s, cost=%v\n",
-				//tx.Hash().String(), from, tx.To().String(), tx.GasPrice(),
-				tx.Hash().String(), to, tx.GasPrice(),
-				tx.Value(), tx.Gas(), tx.Nonce(), hex.EncodeToString(tx.Data()),
-				tx.CheckNonce(), v, r, s,
-				p.LocalAddr().String(), p.RemoteAddr().String(),
-				tx.ChainId(), tx.Protected(), tx.Size().String(), tx.Cost())
-
-			timeNow := time.Now().String()
-			//hashValue := tx.Hash()
-			//hashStr := common.ToHex((&hashValue)[:])
-			// Record GasPrice and GasLimit
-			//maxFee := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))
-			//content := "Hash=" + hashStr +
-			//	", GasPrice=" + tx.GasPrice().String() +
-			//	", GasLimit=" + strconv.FormatUint(tx.Gas(), 10) +
-			//	", MaxFee=" + maxFee.String() +
-			//	", Amount=" + tx.Value().String() +
-			//	", PeerLocal=" + p.LocalAddr().String() +
-			//	", PeerRemote=" + p.RemoteAddr().String()
-			recordTx(content, timeNow)
+			txQueue.EnQueue(tx, p.LocalAddr().String(), p.RemoteAddr().String())
 			// ================================================================================
 
 			p.MarkTransaction(tx.Hash())
@@ -799,33 +764,6 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 	}
 	return nil
 }
-
-// ================================================================================
-func recordTx(content string, timeNow string) {
-	timeList := strings.Split(timeNow, " ")
-	timeNow = timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
-	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
-	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
-}
-
-func appendToFile(fileName string, content string) error {
-	// 以只写的模式，打开文件
-	f, err := os.OpenFile(fileName, os.O_WRONLY, 0644)
-	if err != nil {
-		os.Create(fileName)
-		f, err = os.OpenFile(fileName, os.O_WRONLY, 0644)
-	}
-
-	// 查找文件末尾的偏移量
-	n, _ := f.Seek(0, os.SEEK_END)
-	// 从末尾的偏移量开始写入内容
-	_, err = f.WriteAt([]byte(content), n)
-
-	defer f.Close()
-	return err
-}
-
-// ================================================================================
 
 // BroadcastBlock will either propagate a block to a subset of it's peers, or
 // will only announce it's availability (depending what's requested).
