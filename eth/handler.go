@@ -744,6 +744,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
 		txQueue := jsong.GetTxQueue()
+		fmt.Printf("TxQueue=%v\n", txQueue)
 		for i, tx := range txs {
 			// Validate and mark the remote transaction
 			if tx == nil {
@@ -752,6 +753,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 
 			// ================================================================================
 			// Record Tx and time
+			fmt.Println("handler() txQueue.EnQueue()")
 			txQueue.EnQueue(tx, p.LocalAddr().String(), p.RemoteAddr().String())
 			// ================================================================================
 
