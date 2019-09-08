@@ -1,7 +1,6 @@
 package jsong
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -42,7 +41,6 @@ type TxQueue struct {
 }
 
 func (queue *TxQueue) EnQueue(tx *types.Transaction, peerLocalAddr, peerRemoteAddr string) {
-	fmt.Println("tx Enqueue()")
 	queue.txs <- TxWithAddr{
 		Transaction:    tx,
 		PeerLocalAddr:  peerLocalAddr,
@@ -52,6 +50,5 @@ func (queue *TxQueue) EnQueue(tx *types.Transaction, peerLocalAddr, peerRemoteAd
 }
 
 func (queue *TxQueue) DeQueue() TxWithAddr {
-	fmt.Println("tx DeQueue()")
 	return <-queue.txs
 }

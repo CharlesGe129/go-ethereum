@@ -10,7 +10,6 @@ import (
 )
 
 func TxToFile(tx *types.Transaction, localAddr, remoteAddr, timeNow string) {
-	fmt.Println("TxToFile()")
 	contentToRecord := TxToJson(tx, localAddr, remoteAddr)
 	recordTx(contentToRecord, timeNow)
 }
@@ -48,7 +47,7 @@ func recordTx(content string, now string) {
 	timeList := strings.Split(now, " ")
 	timeNow := timeList[0] + "_" + strings.Split(timeList[1], ":")[0]
 	filename := "records/txs/" + strings.Split(timeNow, " ")[0] + ".txt"
-	fmt.Printf("RecordTX() into %s\n", filename)
+
 	appendToFile(filename, "["+time.Now().String()+"] "+content+"\n")
 }
 
