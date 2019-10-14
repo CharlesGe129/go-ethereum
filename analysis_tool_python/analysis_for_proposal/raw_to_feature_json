@@ -1,0 +1,27 @@
+FEATURE_PATH = "./feature_json/"
+
+class FeatureJsonConverter:
+
+    def run(self):
+        self.files_md5 = self.load_md5()
+        self.check_md5()
+
+    def load_md5(self, path):
+        md5_hash = hashlib.md5()
+        with open(path, 'rb') as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                md5_hash.update(byte_block)
+        return md5_hash.hexdigest()
+    
+    def check_md5(self, raw_file_path, feature_file_path, file_type):
+        feature_md5 = 
+        feature_filename = 
+        if feature_filename in self.files_md5 and self.files_md5[file_type][feature_filename] == feature_md5:
+            return
+        else:
+            self.convert_raw_to_feature()
+
+        pass
+    
+    def convert_raw_to_feature(self):
+        pass
