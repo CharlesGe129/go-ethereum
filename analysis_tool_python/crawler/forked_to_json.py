@@ -3,7 +3,7 @@ import json
 import time
 from datetime import datetime
 from analysis_tool_python.util.models.block import Block
-from util import load_file
+from analysis_tool_python.util import load_file
 
 PATH = '../crawler/forked/'
 JSON_PATH = '../crawler/forked_json/'

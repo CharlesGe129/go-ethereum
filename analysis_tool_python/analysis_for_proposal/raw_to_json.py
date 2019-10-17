@@ -46,7 +46,7 @@ class ApiToJson:
             data.nonce = load_file.load_field_from_dict(content, "nonce", data.nonce)
             data.number = int(load_file.load_field_from_dict(content, "number", data.number), 16)
             data.size = int(load_file.load_field_from_dict(content, "size", data.size), 16)
-            data.timestamp = int(load_file.load_field_from_dict(content, "timestamp", data.timestamp), 16)
+            data.timestamp = load_file.load_field_from_dict(content, "timestamp", data.timestamp)
             data.miner = load_file.load_field_from_dict(content, "miner", data.miner)
             data.mixHash = load_file.load_field_from_dict(content, "mixHash", data.mixHash)
             data.parentHash = load_file.load_field_from_dict(content, "parentHash", data.parentHash)
@@ -60,7 +60,7 @@ class ApiToJson:
             data.uncles = load_file.load_field_from_dict(content, "uncles", data.uncles)
             data.uncleNum = len(data.uncles)
             block_str += data.to_json() + '\n'
-        with open(save_path + filename.replace('.txt', '.json'), 'w') as f:
+        with open(save_path + filename, 'w') as f:
             # each line is a JSON, not the entire file
             f.write(block_str)
 

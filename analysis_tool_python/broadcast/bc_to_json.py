@@ -17,14 +17,10 @@ class BroadcastToJson:
             load_file.check_dir_exist(self.save_path)
             load_file.check_dir_exist(save_path)
             path = self.bc_path + folder
-            i = 0
             for filename in load_file.load_path(path):
                 if not filename.endswith('.txt'):
                     continue
                 self.file_to_json(path, filename)
-                i += 1
-                if i > 3:
-                    break
         self.save()
 
     def file_to_json(self, path, filename):
