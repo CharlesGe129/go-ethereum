@@ -9,6 +9,7 @@ class BroadcastToJson:
     def __init__(self):
         self.bc_path = '../../records/blocks/'
         self.save_path = '../../records/block_json/'
+        self.blocks = dict()
 
     def start(self):
         for folder in ['ali/', 'aws/']:
@@ -19,22 +20,20 @@ class BroadcastToJson:
             for filename in load_file.load_path(path):
                 if not filename.endswith('.txt'):
                     continue
-                self.file_to_json(path, filename, save_path)
+                self.file_to_json(path, filename)
+        self.save()
 
-    def file_to_json(self, path, filename, save_path):
-        content = ""
+    def file_to_json(self, path, filename):
         for line in load_file.load_file_yield_lines(path, filename):
             if not line.startswith('[20'):
                 # Ignore TX lines or empty lines
                 continue
             if '{' in line and '}' in line:
-                content += self.line_json_ish_to_json(line)
+                block = self.line_json_ish_to_json(line)
+                self.blocks[block.number] = block
             else:
-                content += self.line_raw_text_to_json(line)
-
-        with open(save_path + filename.replace('.txt', '.json'), 'w') as f:
-            # each line is a JSON, not the entire file
-            f.write(content)
+                block = self.line_raw_text_to_json(line)
+                self.blocks[block.number] = block
 
     def line_json_ish_to_json(self, line):
         line = '{' + line.split("{")[1].split("}")[0] + '}'
@@ -56,15 +55,14 @@ class BroadcastToJson:
         data.size = self.format_size(raw['size'])
         data.totalDifficulty = ""
         data.extra = raw['extra']
-        data.timestamp = int(raw['timestamp'])
-        return data.to_json() + '\n'
+        data.timestamp = hex(int(raw['timestamp']))
+        return data
 
     def line_raw_text_to_json(self, line):
         line += ","
         data = Block()
         data.difficulty = load_file.load_field(line, 'difficulty')
         extra_str = load_file.load_field(line, 'extra')
-        print(extra_str)
         if 'timestamp' in extra_str:
             data.extraData = extra_str.split('timestamp')[0]
         else:
@@ -85,14 +83,15 @@ class BroadcastToJson:
         data.size = self.format_size(load_file.load_field(line, 'size'))
         data.stateRoot = ''
         time_str = load_file.load_field(line, 'timestamp')
-        data.timestamp = time_format.load_time_to_utc_unix(time_str, "%Y-%m-%d %H:%M:%S")
+        t = time_format.load_time_to_utc_unix(time_str, "%Y-%m-%d %H:%M:%S")
+        data.timestamp = hex(int(t))
         data.totalDifficulty = ''
         data.transactions = ''
         data.transactionsRoot = ''
         data.uncles = [load_file.load_field(line, 'uncleHash')]
         data.uncleNum = load_file.load_field(line, 'uncleNum')
         data.txNum = load_file.load_field(line, 'txNum')
-        return data.to_json() + '\n'
+        return data
 
     def file_to_json_backup(self, path, filename, save_path):
         content = ""
@@ -149,6 +148,23 @@ class BroadcastToJson:
             return hex(int(size_f * 8 * 1024 * 1024))
         else:
             return hex(int(size_f))
+
+    def save(self):
+        contents = dict()
+        i = 0
+        print(len(self.blocks))
+        for height, block in self.blocks.items():
+            filename = int(int(height) / 10000) * 10000
+            if filename not in contents:
+                contents[filename] = ""
+            i += 1
+            if i % 10000 == 0:
+                print(i)
+            contents[filename] += block.to_json() + "\n"
+        for height, content in contents.items():
+            print(f"saving {self.save_path}{height}.txt")
+            with open(f"{self.save_path}{height}.txt", 'w') as f:
+                f.write(content)
 
 
 if __name__ == '__main__':
