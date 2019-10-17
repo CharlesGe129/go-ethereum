@@ -30,7 +30,6 @@ class FeatureJsonConverter:
             for filename in load_file.load_path(path):
                 print(f"==== processing: finished {self.done_count / total_count * 100.0}% ====")
                 if filename in filename_updated:
-                    self.done_count += 1
                     continue
                 else:
                     self.check_md5(path, filename, self.file_types[idx_type])
@@ -57,8 +56,6 @@ class FeatureJsonConverter:
             return
         else:
             self.convert_raw_to_feature(filename)
-            print(f"update md5: md5[{file_type}][{filename}] = {feature_md5}")
-            self.files_md5[file_type][filename] = feature_md5
 
     @staticmethod
     def cal_md5(path):
@@ -106,7 +103,8 @@ class FeatureJsonConverter:
         unique_hashes = set()
         for idx in range(len(self.paths)):
             folder = self.paths[idx][1]
-            if not os_path.exists(f"{folder}{filename}"):
+            path = f"{folder}{filename}"
+            if not os_path.exists(path):
                 continue
             self.done_count += 1
             for line in load_file.load_file_yield_lines(folder, filename):
@@ -121,6 +119,9 @@ class FeatureJsonConverter:
                     blocks[idx][height] = [b]
                 else:
                     blocks[idx][height].append(b)
+            md5 = self.cal_md5(path)
+            print(f"update md5: md5[{self.file_types[idx]}][{filename}] = {md5}")
+            self.files_md5[self.file_types[idx]][filename] = md5
         return blocks
 
     def save_feature(self, blocks, filename):
