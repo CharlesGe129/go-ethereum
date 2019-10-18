@@ -8,9 +8,9 @@ FEATURE_PATH = "./feature_json/"
 
 
 class FeatureJsonConverter:
-    def __init__(self, feature_path=FEATURE_PATH):
+    def __init__(self, cfg=cfg.load_cfg(), feature_path=FEATURE_PATH):
         # paths[0=canonical, 1=bc, 2=uncle, 3=forked][0=raw_path, 1=json_path]
-        self.paths = cfg.load_cfg()
+        self.paths = cfg
         # files_md5[file_type][filename] = md5
         self.files_md5 = dict()
         self.feature_path = feature_path
@@ -28,6 +28,7 @@ class FeatureJsonConverter:
         for idx_type in range(len(self.paths)):
             path = self.paths[idx_type][1]
             for filename in load_file.load_path(path):
+                self.done_count += 1
                 print(f"==== processing: finished {self.done_count / total_count * 100.0}% ====")
                 if filename in filename_updated:
                     continue
@@ -52,7 +53,6 @@ class FeatureJsonConverter:
         if filename in self.files_md5[file_type] \
                 and self.files_md5[file_type][filename] == feature_md5:
             print(f"{filename}: md5 check succeeds")
-            self.done_count += 1
             return
         else:
             self.convert_raw_to_feature(filename)
@@ -106,7 +106,6 @@ class FeatureJsonConverter:
             path = f"{folder}{filename}"
             if not os_path.exists(path):
                 continue
-            self.done_count += 1
             for line in load_file.load_file_yield_lines(folder, filename):
                 b = json.loads(line)
                 # remove duplicates
@@ -151,6 +150,25 @@ class FeatureJsonConverter:
                     # each line is a JSON, not the entire file
                     f.write(content)
 
+    def test(self):
+        self.run()
+        result_path = self.feature_path
+        expect_path = "./feature_json/test/feature_json_expected/"
+        folders = ["canonical/", "uncle/", "forked/", "broadcast/"]
+        for folder in folders:
+            for filename in load_file.load_path(f"{expect_path}{folder}"):
+                with open(f"{result_path}{folder}{filename}") as f_res, open(
+                        f"{expect_path}{folder}{filename}") as f_exp:
+                    if f_res.read() != f_exp.read():
+                        print(f"TEST FAILED!! file {folder}{filename} has wrong content")
+                        return
+        with open(f"{self.feature_path}/md5.txt") as f_res, open(f"{expect_path}/md5_expected.txt") as f_exp:
+            if f_res.read() != f_exp.read():
+                print(f"TEST FAILED!! file {self.feature_path}md5.txt has wrong content")
+                return
+        print("TEST SUCCESS")
+
 
 if __name__ == '__main__':
+    # FeatureJsonConverter(cfg.load_cfg("./feature_json/test/env.conf"), "./feature_json/test/feature_json/").test()
     FeatureJsonConverter().run()
