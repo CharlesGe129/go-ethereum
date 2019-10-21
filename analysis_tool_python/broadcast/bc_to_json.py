@@ -47,6 +47,7 @@ class BroadcastToJson:
         data.logsBloom = raw['logsBloom']
         data.number = int(raw['number'])
         data.uncles = raw['uncles']
+        data.miner = raw['miner']
         data.txNum = int(raw['txNum'])
         data.gasUsed = int(raw['gasUsed'])
         data.gasLimit = int(raw['gasLimit'])
