@@ -62,3 +62,17 @@ class Block:
         block_dict['uncleReward'] = self.uncleReward
         block_dict['uncles'] = self.uncles
         return json.dumps(block_dict)
+
+    def to_feature_json(self):
+        block_dict = OrderedDict()
+        block_dict['gasUsed'] = self.gasUsed
+        block_dict['gasLimit'] = self.gasLimit
+        block_dict['difficulty'] = self.difficulty
+        block_dict['number'] = self.number
+        block_dict['miner'] = self.miner
+        block_dict['timestamp'] = self.timestamp
+        block_dict['size'] = self.size
+        block_dict['txNum'] = self.txNum
+        block_dict['uncleNum'] = self.uncleNum
+        block_dict['hash'] = self.hash
+        return json.dumps(block_dict)

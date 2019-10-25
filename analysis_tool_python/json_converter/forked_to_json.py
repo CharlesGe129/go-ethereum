@@ -1,29 +1,33 @@
 import os
 import json
 import time
+import configparser
 from datetime import datetime
 from analysis_tool_python.util.models.block import Block
 from analysis_tool_python.util import load_file
 
-PATH = '../crawler/forked/'
-JSON_PATH = '../crawler/forked_json/'
-
 
 class ForkedToJson:
     def __init__(self):
+        self.conf_path = '../env.conf'
+        config = configparser.ConfigParser()
+        config.read(self.conf_path)
+
+        self.raw_path = config.get("forked", "raw_path")
+        self.json_path = config.get("forked", "json_path")
         self.blocks = dict()
 
     def start(self):
-        if not os.path.isdir(JSON_PATH):
-            os.mkdir(JSON_PATH)
-        for filename in load_file.load_path(PATH):
+        if not os.path.isdir(self.json_path):
+            os.mkdir(self.json_path)
+        for filename in load_file.load_path(self.raw_path):
             print(f"loading {filename}")
             self.convert_file(filename)
         self.save()
 
     def convert_file(self, filename):
-        ori_path = PATH + filename
-        save_path = JSON_PATH + filename
+        ori_path = self.raw_path + filename
+        save_path = self.json_path + filename
         with open(ori_path) as f:
             lines = f.readlines()
         for line in lines:
@@ -65,10 +69,10 @@ class ForkedToJson:
             filename = int(height / 10000) * 10000
             if filename not in contents:
                 contents[filename] = ""
-            contents[filename] += block.to_json() + "\n"
+            contents[filename] += block.to_feature_json() + "\n"
         for height, content in contents.items():
-            print(f"saving {JSON_PATH}{height}.txt")
-            with open(f"{JSON_PATH}{height}.txt", 'w') as f:
+            print(f"saving {self.json_path}{height}.txt")
+            with open(f"{self.json_path}{height}.txt", 'w') as f:
                 f.write(content)
 
 

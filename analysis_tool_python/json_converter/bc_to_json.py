@@ -1,14 +1,17 @@
-import time
 import json
-from datetime import datetime
+import configparser
 from analysis_tool_python.util.models.block import Block
-from util import load_file, time_format
+from analysis_tool_python.util import load_file, time_format
 
 
 class BroadcastToJson:
     def __init__(self):
-        self.bc_path = '../../records/blocks/'
-        self.save_path = '../../records/block_json/'
+        self.conf_path = '../env.conf'
+        config = configparser.ConfigParser()
+        config.read(self.conf_path)
+
+        self.bc_path = config.get("broadcast", "raw_path")
+        self.save_path = config.get("broadcast", "json_path")
         self.blocks = dict()
 
     def start(self):
@@ -161,7 +164,7 @@ class BroadcastToJson:
             i += 1
             if i % 10000 == 0:
                 print(i)
-            contents[filename] += block.to_json() + "\n"
+            contents[filename] += block.to_feature_json() + "\n"
         for height, content in contents.items():
             print(f"saving {self.save_path}{height}.txt")
             with open(f"{self.save_path}{height}.txt", 'w') as f:

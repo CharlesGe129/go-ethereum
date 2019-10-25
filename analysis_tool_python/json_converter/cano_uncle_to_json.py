@@ -59,7 +59,7 @@ class ApiToJson:
             data.txNum = len(data.transactions)
             data.uncles = load_file.load_field_from_dict(content, "uncles", data.uncles)
             data.uncleNum = len(data.uncles)
-            block_str += data.to_json() + '\n'
+            block_str += data.to_feature_json() + '\n'
         with open(save_path + filename, 'w') as f:
             # each line is a JSON, not the entire file
             f.write(block_str)
