@@ -16,6 +16,7 @@ class ForkedToJson:
         self.raw_path = config.get("forked", "raw_path")
         self.json_path = config.get("forked", "json_path")
         self.blocks = dict()
+        self.unique_block_hashes = dict()
 
     def start(self):
         if not os.path.isdir(self.json_path):
@@ -32,7 +33,11 @@ class ForkedToJson:
             lines = f.readlines()
         for line in lines:
             block = self.line_to_json(line)
-            self.blocks[block.number] = block
+            if block.hash not in self.unique_block_hashes:
+                self.unique_block_hashes[block.hash] = 1
+                if block.number not in self.blocks:
+                    self.blocks[block.number] = list()
+                self.blocks[block.number].append(block)
 
     def line_to_json(self, line):
         block = Block()
