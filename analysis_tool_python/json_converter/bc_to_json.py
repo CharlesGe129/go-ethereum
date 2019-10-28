@@ -13,6 +13,7 @@ class BroadcastToJson:
         self.bc_path = config.get("broadcast", "raw_path")
         self.save_path = config.get("broadcast", "json_path")
         self.blocks = dict()
+        self.unique_block_hashes = dict()
 
     def start(self):
         for folder in ['ali/', 'aws/']:
@@ -33,10 +34,19 @@ class BroadcastToJson:
                 continue
             if '{' in line and '}' in line:
                 block = self.line_json_ish_to_json(line)
-                self.blocks[block.number] = block
+                self.insert_block(block)
             else:
                 block = self.line_raw_text_to_json(line)
-                self.blocks[block.number] = block
+                self.insert_block(block)
+    
+    def insert_block(self, block):
+        if block.hash in self.unique_block_hashes:
+            return
+        else:
+            self.unique_block_hashes[block.hash] = 1
+        if block.number not in self.blocks:
+            self.blocks[block.number] = list()
+        self.blocks[block.number].append(block)
 
     def line_json_ish_to_json(self, line):
         line = '{' + line.split("{")[1].split("}")[0] + '}'
@@ -115,14 +125,15 @@ class BroadcastToJson:
         contents = dict()
         i = 0
         print(len(self.blocks))
-        for height, block in self.blocks.items():
-            filename = int(int(height) / 10000) * 10000
-            if filename not in contents:
-                contents[filename] = ""
-            i += 1
-            if i % 10000 == 0:
-                print(i)
-            contents[filename] += block.to_feature_json() + "\n"
+        for height, block_list in self.blocks.items():
+            for block in block_list:
+                filename = int(int(height) / 10000) * 10000
+                if filename not in contents:
+                    contents[filename] = ""
+                i += 1
+                if i % 10000 == 0:
+                    print(i)
+                contents[filename] += block.to_feature_json() + "\n"
         for height, content in contents.items():
             print(f"saving {self.save_path}{height}.txt")
             with open(f"{self.save_path}{height}.txt", 'w') as f:
