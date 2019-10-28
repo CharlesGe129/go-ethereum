@@ -52,14 +52,14 @@ class BroadcastToJson:
         data.uncles = raw['uncles']
         data.miner = raw['miner']
         data.txNum = int(raw['txNum'])
-        data.gasUsed = int(raw['gasUsed'])
-        data.gasLimit = int(raw['gasLimit'])
+        data.gasUsed = str(int(raw['gasUsed']))
+        data.gasLimit = str(int(raw['gasLimit']))
         data.difficulty = raw['difficulty']
         data.mixDigest = raw['mixDigest']
         data.size = self.format_size(raw['size'])
         data.totalDifficulty = ""
         data.extra = raw['extra']
-        data.timestamp = hex(int(raw['timestamp']))
+        data.timestamp = str(int(raw['timestamp']))
         return data
 
     def line_raw_text_to_json(self, line):
@@ -72,9 +72,9 @@ class BroadcastToJson:
         else:
             data.extraData = extra_str
         gas_limit_str = load_file.load_field(line, 'gasLimit')
-        data.gasLimit = hex(int(gas_limit_str)) if gas_limit_str != '' else 0
+        data.gasLimit = str(int(gas_limit_str)) if gas_limit_str != '' else 0
         gas_used_str = load_file.load_field(line, 'gasUsed')
-        data.gasUsed = hex(int(gas_used_str)) if gas_used_str != '' else 0
+        data.gasUsed = str(int(gas_used_str)) if gas_used_str != '' else 0
         data.hash = load_file.load_field(line, 'Block Hash')
         data.logsBloom = load_file.load_field(line, 'logsBloom')
         data.miner = load_file.load_field(line, 'miner')
@@ -88,56 +88,14 @@ class BroadcastToJson:
         data.stateRoot = ''
         time_str = load_file.load_field(line, 'timestamp')
         t = time_format.load_time_to_utc_unix(time_str, "%Y-%m-%d %H:%M:%S")
-        data.timestamp = hex(int(t))
+        data.timestamp = str(int(t))
         data.totalDifficulty = ''
         data.transactions = ''
         data.transactionsRoot = ''
         data.uncles = [load_file.load_field(line, 'uncleHash')]
-        data.uncleNum = load_file.load_field(line, 'uncleNum')
-        data.txNum = load_file.load_field(line, 'txNum')
+        data.uncleNum = int(load_file.load_field(line, 'uncleNum'))
+        data.txNum = int(load_file.load_field(line, 'txNum'))
         return data
-
-    def file_to_json_backup(self, path, filename, save_path):
-        content = ""
-        for line in load_file.load_file_yield_lines(path, filename):
-            if line.startswith('0x') or line.startswith("tx"):
-                # tx line
-                continue
-            line += ","
-            data = dict()
-            data['difficulty'] = ''
-            extra_str = load_file.load_field(line, 'extra')
-            if 'timestamp' in extra_str:
-                data['extraData'] = extra_str.split('timestamp')[0]
-            else:
-                data['extraData'] = extra_str
-            gas_limit_str = load_file.load_field(line, 'gasLimit')
-            data['gasLimit'] = hex(int(gas_limit_str)) if gas_limit_str != '' else 0
-            gas_used_str = load_file.load_field(line, 'gasUsed')
-            data['gasUsed'] = hex(int(gas_used_str)) if gas_used_str != '' else 0
-            data['hash'] = load_file.load_field(line, 'Block Hash')
-            data['logsBloom'] = load_file.load_field(line, 'logsBloom')
-            data['miner'] = load_file.load_field(line, 'miner')
-            data['mixHash'] = ''
-            data['nonce'] = load_file.load_field(line, 'nonce')
-            data['number'] = load_file.load_field(line, 'number')
-            data['parentHash'] = load_file.load_field(line, 'parentHash')
-            data['receiptsRoot'] = load_file.load_field(line, 'receiptHash')
-            data['sha3Uncles'] = ''
-            data['size'] = self.format_size(load_file.load_field(line, 'size'))
-            data['stateRoot'] = ''
-            time_str = load_file.load_field(line, 'timestamp')
-            data['timestamp'] = time_format.load_time_to_utc_unix(time_str, "%Y-%m-%d %H:%M:%S")
-            data['totalDifficulty'] = ''
-            data['transactions'] = ''
-            data['transactionsRoot'] = ''
-            data['uncles'] = [load_file.load_field(line, 'uncleHash')]
-            data['uncleNum'] = load_file.load_field(line, 'uncleNum')
-            data['txNum'] = load_file.load_field(line, 'txNum')
-            content += json.dumps(data) + '\n'
-        with open(save_path + filename.replace('.txt', '.json'), 'w') as f:
-            # each line is a JSON, not the entire file
-            f.write(content)
 
     @staticmethod
     def format_size(size_str):

@@ -40,7 +40,7 @@ class ForkedToJson:
         time_unformated = line.split('timeStampUnformated=')[1].split(',')[0]
         t = datetime.strptime(time_unformated[:-5], '%b-%d-%Y %I:%M:%S %p')
         unix_time = time.mktime(t.timetuple())
-        block.timestamp = hex(int(unix_time))
+        block.timestamp = str(int(unix_time))
         block.reorgDepth = line.split('reorgDepth=')[1].split(',')[0] if 'reorgDepth' in line else ''
         block.miner = line.split('minerHash=')[1].split(',')[0]
         block.minerName = line.split('miner=')[1].split(',')[0]
@@ -49,9 +49,9 @@ class ForkedToJson:
         block.uncleReward = line.split('uncleReward=')[1].split(',')[0]
         block.difficulty = self.str_replace_comma(line.split('difficulty=')[1].split(',totalDifficulty')[0])
         block.totalDifficulty = self.str_replace_comma(line.split('totalDifficulty=')[1].split(',size')[0])
-        block.size = int(self.str_replace_comma(line.split('size=')[1].split(',gasUsed')[0]))
-        block.gasUsed = int(self.str_replace_comma(line.split('gasUsed=')[1].split(',gasLimit')[0]))
-        block.gasLimit = int(self.str_replace_comma(line.split('gasLimit=')[1].split(',extraData')[0]))
+        block.size = str(int(self.str_replace_comma(line.split('size=')[1].split(',gasUsed')[0])))
+        block.gasUsed = str(int(self.str_replace_comma(line.split('gasUsed=')[1].split(',gasLimit')[0])))
+        block.gasLimit = str(int(self.str_replace_comma(line.split('gasLimit=')[1].split(',extraData')[0])))
         block.extraData = line.split('extraData=')[1].split(',')[0]
         block.hash = line.split('hash=')[1].split(',')[0]
         block.parentHash = line.split('parentHash=')[1].split(',')[0]

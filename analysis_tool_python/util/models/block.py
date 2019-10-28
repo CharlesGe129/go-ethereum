@@ -6,8 +6,8 @@ class Block:
     def __init__(self):
         self.difficulty = ""
         self.extraData = ""
-        self.gasLimit = 0
-        self.gasUsed = 0
+        self.gasLimit = ""
+        self.gasUsed = ""
         self.hash = ""
         self.logsBloom = ""
         self.mineTime = ""
@@ -21,9 +21,9 @@ class Block:
         self.reorgDepth = ""
         self.reward = ""
         self.sha3Uncles = ""
-        self.size = 0
+        self.size = ""
         self.stateRoot = ""
-        self.timestamp = 0
+        self.timestamp = ""
         self.totalDifficulty = ""
         self.transactions = []
         self.transactionsRoot = ""
@@ -65,14 +65,14 @@ class Block:
 
     def to_feature_json(self):
         block_dict = OrderedDict()
-        block_dict['gasUsed'] = self.gasUsed
-        block_dict['gasLimit'] = self.gasLimit
-        block_dict['difficulty'] = self.difficulty
-        block_dict['number'] = self.number
-        block_dict['miner'] = self.miner
-        block_dict['timestamp'] = self.timestamp
-        block_dict['size'] = self.size
-        block_dict['txNum'] = self.txNum
-        block_dict['uncleNum'] = self.uncleNum
-        block_dict['hash'] = self.hash
+        block_dict['gasUsed'] = str(self.gasUsed)
+        block_dict['gasLimit'] = str(self.gasLimit)
+        block_dict['difficulty'] = str(self.difficulty)
+        block_dict['number'] = int(self.number)
+        block_dict['miner'] = str(self.miner)
+        block_dict['timestamp'] = str(self.timestamp)
+        block_dict['size'] = str(self.size)
+        block_dict['txNum'] = int(self.txNum)
+        block_dict['uncleNum'] = int(self.uncleNum)
+        block_dict['hash'] = str(self.hash)
         return json.dumps(block_dict)
