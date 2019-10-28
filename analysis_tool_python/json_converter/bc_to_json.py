@@ -103,8 +103,10 @@ class BroadcastToJson:
         data.transactions = ''
         data.transactionsRoot = ''
         data.uncles = [load_file.load_field(line, 'uncleHash')]
-        data.uncleNum = int(load_file.load_field(line, 'uncleNum'))
-        data.txNum = int(load_file.load_field(line, 'txNum'))
+        num = load_file.load_field(line, 'uncleNum')
+        data.uncleNum = int(num) if num != '' else 0
+        num = load_file.load_field(line, 'txNum')
+        data.txNum = int(num) if num != '' else 0
         return data
 
     @staticmethod

@@ -60,3 +60,4 @@ analysis_tool_python/crawler/forked_json/*
 analysis_tool_python/crawler/canonical/*
 analysis_tool_python/env.conf
 analysis_tool_python/analysis_for_proposal/feature_json/*
+records_json/*

@@ -70,11 +70,12 @@ class ForkedToJson:
 
     def save(self):
         contents = dict()
-        for height, block in self.blocks.items():
-            filename = int(height / 10000) * 10000
-            if filename not in contents:
-                contents[filename] = ""
-            contents[filename] += block.to_feature_json() + "\n"
+        for height, block_list in self.blocks.items():
+            for block in block_list:
+                filename = int(height / 10000) * 10000
+                if filename not in contents:
+                    contents[filename] = ""
+                contents[filename] += block.to_feature_json() + "\n"
         for height, content in contents.items():
             print(f"saving {self.json_path}{height}.txt")
             with open(f"{self.json_path}{height}.txt", 'w') as f:
