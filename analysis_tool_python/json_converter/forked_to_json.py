@@ -40,6 +40,7 @@ class ForkedToJson:
                 self.blocks[block.number].append(block)
 
     def line_to_json(self, line):
+        line = line.replace('\n', '')
         block = Block()
         block.number = int(line.split('blockHeight=')[1].split(',')[0])
         time_unformated = line.split('timeStampUnformated=')[1].split(',')[0]
