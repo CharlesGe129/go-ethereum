@@ -31,16 +31,21 @@ class ForkedToJson:
         save_path = self.json_path + filename
         with open(ori_path) as f:
             lines = f.readlines()
-        for line in lines:
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            while 'nonce=' not in line:
+                i += 1
+                line = line.replace('\n', '') + lines[i]
             block = self.line_to_json(line)
             if block.hash not in self.unique_block_hashes:
                 self.unique_block_hashes[block.hash] = 1
                 if block.number not in self.blocks:
                     self.blocks[block.number] = list()
                 self.blocks[block.number].append(block)
+            i += 1
 
     def line_to_json(self, line):
-        line = line.replace('\n', '')
         block = Block()
         block.number = int(line.split('blockHeight=')[1].split(',')[0])
         time_unformated = line.split('timeStampUnformated=')[1].split(',')[0]
