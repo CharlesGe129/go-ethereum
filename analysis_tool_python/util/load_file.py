@@ -1,4 +1,5 @@
 import os
+from analysis_tool_python.util.models.block import Block
 
 
 def get_file_lines(path, filename, mode='r'):
@@ -43,3 +44,19 @@ def load_field_from_dict(data, field, default=''):
 def check_dir_exist(path):
     if not os.path.isdir(path):
         os.mkdir(path)
+
+
+def load_json_file_yield_block(path, filename):
+    for line in load_file_yield_lines(path, filename):
+        block = Block()
+        block.gasUsed = load_field(line, 'gasUsed')
+        block.gasLimit = load_field(line, 'gasLimit')
+        block.difficulty = load_field(line, 'difficulty')
+        block.number = load_field(line, 'number')
+        block.miner = load_field(line, 'miner')
+        block.timestamp = load_field(line, 'timestamp')
+        block.size = load_field(line, 'size')
+        block.txNum = load_field(line, 'txNum')
+        block.uncleNum = load_field(line, 'uncleNum')
+        block.hash = load_field(line, 'hash')
+        yield block
