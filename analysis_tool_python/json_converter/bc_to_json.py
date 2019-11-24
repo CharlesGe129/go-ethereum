@@ -17,9 +17,7 @@ class BroadcastToJson:
 
     def start(self):
         for folder in ['ali/', 'aws/']:
-            save_path = self.save_path + folder
             load_file.check_dir_exist(self.save_path)
-            load_file.check_dir_exist(save_path)
             path = self.bc_path + folder
             for filename in load_file.load_path(path):
                 if not filename.endswith('.txt'):
@@ -38,7 +36,7 @@ class BroadcastToJson:
             else:
                 block = self.line_raw_text_to_json(line)
                 self.insert_block(block)
-    
+
     def insert_block(self, block):
         if block.hash in self.unique_block_hashes:
             return

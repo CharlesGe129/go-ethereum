@@ -70,9 +70,51 @@ class Block:
         block_dict['difficulty'] = str(self.difficulty)
         block_dict['number'] = int(self.number)
         block_dict['miner'] = str(self.miner)
-        block_dict['timestamp'] = str(self.timestamp)
+        if str(self.timestamp).startswith("0x"):
+            block_dict['timestamp'] = str(int(self.timestamp, 16))
+        else:
+            block_dict['timestamp'] = str(self.timestamp)
         block_dict['size'] = str(self.size)
         block_dict['txNum'] = int(self.txNum)
         block_dict['uncleNum'] = int(self.uncleNum)
         block_dict['hash'] = str(self.hash)
+        block_dict['parentHash'] = str(self.parentHash)
         return json.dumps(block_dict)
+
+    def amend_missing_fields(self, b):
+        if self.gasUsed == "":
+            self.gasUsed = b.gasUsed
+        if self.gasLimit == "":
+            self.gasLimit = b.gasLimit
+        if self.difficulty == "":
+            self.difficulty = b.difficulty
+        if self.miner == "":
+            self.miner = b.miner
+        if self.size == "":
+            self.size = b.size
+        if self.txNum == 0:
+            self.txNum = b.txNum
+        if self.uncleNum == 0:
+            self.uncleNum = b.uncleNum
+
+    def get_value(self, field):
+        if field == 'gasUsed':
+            return self.gasUsed
+        if field == 'gasLimit':
+            return self.gasLimit
+        if field == 'difficulty':
+            return self.difficulty
+        if field == 'number':
+            return self.number
+        if field == 'miner':
+            return self.miner
+        if field == 'timestamp':
+            return self.timestamp
+        if field == 'size':
+            return self.size
+        if field == 'txNum':
+            return self.txNum
+        if field == 'uncleNum':
+            return self.uncleNum
+        if field == 'hash':
+            return self.hash

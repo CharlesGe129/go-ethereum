@@ -1,4 +1,5 @@
 import os
+import json
 from analysis_tool_python.util.models.block import Block
 
 
@@ -48,15 +49,17 @@ def check_dir_exist(path):
 
 def load_json_file_yield_block(path, filename):
     for line in load_file_yield_lines(path, filename):
+        data = json.loads(line)
         block = Block()
-        block.gasUsed = load_field(line, 'gasUsed')
-        block.gasLimit = load_field(line, 'gasLimit')
-        block.difficulty = load_field(line, 'difficulty')
-        block.number = load_field(line, 'number')
-        block.miner = load_field(line, 'miner')
-        block.timestamp = load_field(line, 'timestamp')
-        block.size = load_field(line, 'size')
-        block.txNum = load_field(line, 'txNum')
-        block.uncleNum = load_field(line, 'uncleNum')
-        block.hash = load_field(line, 'hash')
+        block.gasUsed = load_field_from_dict(data, 'gasUsed')
+        block.gasLimit = load_field_from_dict(data, 'gasLimit')
+        block.difficulty = load_field_from_dict(data, 'difficulty')
+        block.number = load_field_from_dict(data, 'number')
+        block.miner = load_field_from_dict(data, 'miner')
+        block.timestamp = load_field_from_dict(data, 'timestamp')
+        block.size = load_field_from_dict(data, 'size')
+        block.txNum = load_field_from_dict(data, 'txNum')
+        block.uncleNum = load_field_from_dict(data, 'uncleNum')
+        block.hash = load_field_from_dict(data, 'hash')
+        block.parentHash = load_field_from_dict(data, 'parentHash')
         yield block
