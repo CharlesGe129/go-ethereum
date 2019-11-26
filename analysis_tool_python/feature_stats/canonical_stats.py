@@ -191,8 +191,10 @@ class CanonicalStatistics:
             for date, block_list in self.blocks_by_date.items():
                 for b in block_list:
                     differences[0].append(get_func(b) - self.overall_stats[field]['mean'])
-                    differences[1].append(get_func(b) - self.mean_height[field][b.number])
-                    differences[2].append(get_func(b) - self.mean_daily[field][date])
+                    if b.number in self.mean_height[field]:
+                        differences[1].append(get_func(b) - self.mean_height[field][b.number])
+                    if date in self.mean_daily[field]:
+                        differences[2].append(get_func(b) - self.mean_daily[field][date])
             self.differences[field] = differences
 
     def organize_difference_1_to_3(self):
