@@ -113,8 +113,13 @@ class CanonicalStatistics:
             for field_and_func in field_and_funcs:
                 field = field_and_func[0]
                 get_func = field_and_func[1]
-                value_list = [get_func(b) for b in block_list]
-                self.mean_daily[field][date] = statistics.mean(value_list)
+                value_list = list()
+                for b in block_list:
+                    val = get_func(b)
+                    if val >= 0:
+                        value_list.append(val)
+                if value_list:
+                    self.mean_daily[field][date] = statistics.mean(value_list)
 
         print("calculating mean height")
         total = len(self.blocks_by_height)
@@ -127,9 +132,14 @@ class CanonicalStatistics:
             for field_and_func in field_and_funcs:
                 field = field_and_func[0]
                 get_func = field_and_func[1]
-                value_list = [get_func(b) for b in blocks_by_hash.values()]
+                value_list = list()
+                for b in blocks_by_hash.values():
+                    val = get_func(b)
+                    if val >= 0:
+                        value_list.append(val)
                 value_total[field] += value_list
-                self.mean_height[field][height] = statistics.mean(value_list)
+                if value_list:
+                    self.mean_height[field][height] = statistics.mean(value_list)
 
         print("calculating overall stats")
         # mean total
@@ -180,7 +190,7 @@ class CanonicalStatistics:
             differences = [list(), list(), list()]
             for date, block_list in self.blocks_by_date.items():
                 for b in block_list:
-                    differences[0].append(get_func(b) - self.mean_total[field])
+                    differences[0].append(get_func(b) - self.overall_stats[field]['mean'])
                     differences[1].append(get_func(b) - self.mean_height[field][b.number])
                     differences[2].append(get_func(b) - self.mean_daily[field][date])
             self.differences[field] = differences
