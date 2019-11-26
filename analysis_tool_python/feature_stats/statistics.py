@@ -19,6 +19,8 @@ class CanonicalStatistics:
         self.total_canonical = 0
         self.total_blocks = 0
 
+        self.differences = dict()  # [field][0=cur-total_mean, 1=cur-mean_height, 2=cur-mean_daily] = list()
+
     def start(self):
         self.load_blocks()
         self.prepare_extra_fields()
@@ -155,6 +157,19 @@ class CanonicalStatistics:
 
         self.miner_stats = [miner_cano_num, miner_cano_percent, miner_cano_total_cano_percent,
                             miner_cano_total_block_percent]
+
+    def cal_differences(self, field_and_funcs):
+        # field_and_funcs[field=0, get_field_func=1]
+        for field_and_func in field_and_funcs:
+            field = field_and_func[0]
+            get_func = field_and_func[1]
+            differences = [list(), list(), list()]
+            for date, block_list in self.blocks_by_date.items():
+                for b in block_list:
+                    differences[0].append(get_func(b) - self.mean_total[field])
+                    differences[1].append(get_func(b) - self.mean_height[field][b.number])
+                    differences[2].append(get_func(b) - self.mean_daily[field][date])
+            self.differences[field] = differences
 
 
 if __name__ == '__main__':
