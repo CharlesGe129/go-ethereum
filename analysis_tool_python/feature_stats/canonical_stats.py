@@ -10,24 +10,26 @@ class CanonicalStatistics:
         self.blocks_by_height = dict()  # [height][hash] = block
         self.blocks_by_date = dict()  # [20190910] = list()
 
-        self.mean_total = dict()  # [field] = mean
         self.mean_daily = dict()  # [field][date] = mean
         self.mean_height = dict()  # [field][height] = mean
 
-        self.miner_stats = dict()
-        self.miner_canonical_num = dict()  # [miner][0=cano, 1=non_cano] = num
         self.total_canonical = 0
         self.total_blocks = 0
 
+        self.miner_stats = dict()  # see func cal_miner_stats()
+        self.miner_canonical_num = dict()  # [miner][0=cano, 1=non_cano] = num
+
         self.differences = dict()  # [field][0=cur-total_mean, 1=cur-mean_height, 2=cur-mean_daily] = list()
+
+        self.overall_stats = dict()  # [field][min, max, std, mean]
 
     def start(self):
         self.load_blocks()
         self.prepare_extra_fields()
         self.get_blocks_daily()
         self.cal_miner_stats()
-        # "size", "gasUsed", "gasLimit", "uncleNum", "difficulty"
-        self.cal_mean([
+
+        field_and_funcs = [
             ["size", lambda block: int(block.size, 16) if block.size.startswith("0x") else int(block.size)],
             ["gasUsed", lambda block: int(block.gasUsed)],
             ["gasLimit", lambda block: int(block.gasLimit)],
@@ -40,7 +42,14 @@ class CanonicalStatistics:
             ["timeDiff", lambda block: float(block.timeDiff)],
             ["gasPercent",
              lambda block: float(block.gasUsed) / float(block.gasLimit) if float(block.gasLimit) != 0 else -1],
-        ])
+        ]
+
+        self.cal_mean_and_overall(field_and_funcs)
+
+        self.cal_differences(field_and_funcs)
+
+        # TODO:
+        self.organize_difference_1_to_3()
 
     def load_blocks(self):
         # cano
@@ -83,7 +92,7 @@ class CanonicalStatistics:
                 # time diff
                 b.timeDiff = str(int(b.timestamp) - time_diff_mean)
 
-    def cal_mean(self, field_and_funcs):
+    def cal_mean_and_overall(self, field_and_funcs):
         # field_and_funcs[field=0, get_field_func=1]
         print("calculating mean")
         value_total = dict()  # [field] = list()
@@ -122,11 +131,16 @@ class CanonicalStatistics:
                 value_total[field] += value_list
                 self.mean_height[field][height] = statistics.mean(value_list)
 
-        print("calculating mean total")
+        print("calculating overall stats")
         # mean total
         for field_and_func in field_and_funcs:
             field = field_and_func[0]
-            self.mean_total[field] = statistics.mean(value_total[field])
+            stats = dict()
+            stats["min"] = min(value_total[field])
+            stats["max"] = max(value_total[field])
+            stats["mean"] = statistics.mean(value_total[field])
+            stats["std"] = statistics.stdev(value_total[field])
+            self.overall_stats[field] = stats
 
     def get_blocks_daily(self):
         print("converting blocks by date")
@@ -171,6 +185,14 @@ class CanonicalStatistics:
                     differences[2].append(get_func(b) - self.mean_daily[field][date])
             self.differences[field] = differences
 
+    def organize_difference_1_to_3(self):
+        pass
+
 
 if __name__ == '__main__':
-    CanonicalStatistics().start()
+    c = CanonicalStatistics()
+    c.start()
+    for k, v in c.overall_stats.items():
+        print(k)
+        print(v)
+    print(123)
