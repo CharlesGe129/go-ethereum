@@ -31,6 +31,7 @@ class Block:
         self.uncleNum = 0
         self.uncleReward = ""
         self.uncles = []
+        self.is_canonical = False
 
     def to_json(self):
         block_dict = OrderedDict()
