@@ -20,7 +20,7 @@ class CanonicalStatistics:
         self.miner_stats = dict()  # see func cal_miner_stats()
         self.miner_canonical_num = dict()  # [miner][0=cano, 1=non_cano] = num
 
-        self.differences = dict()  # [field][0=cur-total_mean, 1=cur-mean_height, 2=cur-mean_daily] = list()
+        self.differences = dict()  # [field][0=cur-total_mean, 1=cur-mean_height, 2=cur-mean_daily][0=cano, 1=non_cano] = list()
 
         self.overall_stats = dict()  # [field][min, max, std, mean]
 
@@ -49,7 +49,6 @@ class CanonicalStatistics:
 
         self.cal_differences(field_and_funcs)
 
-        # TODO:
         self.organize_differences(10)
 
     def load_blocks(self):
@@ -192,53 +191,67 @@ class CanonicalStatistics:
         for field_and_func in field_and_funcs:
             field = field_and_func[0]
             get_func = field_and_func[1]
-            differences = [list(), list(), list()]
+            differences = [[list(), list()], [list(), list()], [list(), list()]]
             for date, block_list in self.blocks_by_date.items():
                 for b in block_list:
-                    differences[0].append(get_func(b) - self.overall_stats[field]['mean'])
-                    if b.number in self.mean_height[field]:
-                        differences[1].append(get_func(b) - self.mean_height[field][b.number])
-                    if date in self.mean_daily[field]:
-                        differences[2].append(get_func(b) - self.mean_daily[field][date])
+                    if b.is_canonical:
+                        differences[0][0].append(get_func(b) - self.overall_stats[field]['mean'])
+                        if b.number in self.mean_height[field]:
+                            differences[1][0].append(get_func(b) - self.mean_height[field][b.number])
+                        if date in self.mean_daily[field]:
+                            differences[2][0].append(get_func(b) - self.mean_daily[field][date])
+                    else:
+                        differences[0][1].append(get_func(b) - self.overall_stats[field]['mean'])
+                        if b.number in self.mean_height[field]:
+                            differences[1][1].append(get_func(b) - self.mean_height[field][b.number])
+                        if date in self.mean_daily[field]:
+                            differences[2][1].append(get_func(b) - self.mean_daily[field][date])
             self.differences[field] = differences
 
     def organize_differences(self, piece_num):
-        data = dict()  # [field][diff_mean_total, diff_mean_height, diff_mean_date][idx] = {"lower", "upper", "data"}
+        # [field][diff_mean_total, diff_mean_height, diff_mean_date][idx] = {"lower", "upper", "data", "cano_num"}
+        data = dict()
         for field, differences in self.differences.items():
             for i in range(len(differences)):
                 diff_list = differences[i]
                 data[field][i] = self.organize_diff(diff_list, piece_num)
 
     @staticmethod
-    def organize_diff(diff_list, piece_num):
-        upper_total = max(diff_list)
-        lower_total = min(diff_list)
+    def organize_diff(diff_lists, piece_num):
+        upper_total = max(diff_lists)
+        lower_total = min(diff_lists)
         middle_total = (upper_total + lower_total) / 2
 
-        diff_in_pieces = list()
+        diff_in_pieces = list()  # {}
         piece = (upper_total - lower_total) / piece_num
         for i in range(piece_num):
             diff_in_pieces.append({
                 "lower": lower_total + i * piece,
                 "upper": lower_total + (i + 1) * piece,
-                "data": list()
+                "data": list(),
+                "cano_num": 0,
             })
-        for diff in diff_list:
-            if diff < middle_total:
-                # starts with [0]
-                for each in diff_in_pieces:
-                    if diff < each['upper']:
-                        each['data'].append(diff)
-                        break
-            else:
-                # starts with [-1]
-                i = len(diff_in_pieces)
-                while i > 0:
-                    i -= 1
-                    each = diff_in_pieces[i]
-                    if diff >= each['lower']:
-                        each['data'].append(diff)
-                        break
+        for i in range(2):
+            diff_list = diff_lists[i]
+            is_canonical = 1 if i == 0 else 0
+            for diff in diff_list:
+                if diff < middle_total:
+                    # starts with [0]
+                    for each in diff_in_pieces:
+                        if diff < each['upper']:
+                            each['data'].append(diff)
+                            each['cano_num'] += is_canonical
+                            break
+                else:
+                    # starts with [-1]
+                    i = len(diff_in_pieces)
+                    while i > 0:
+                        i -= 1
+                        each = diff_in_pieces[i]
+                        if diff >= each['lower']:
+                            each['data'].append(diff)
+                            each['cano_num'] += is_canonical
+                            break
         return diff_in_pieces
 
 
