@@ -5,8 +5,8 @@ from analysis_tool_python.util.load_file import *
 
 
 class CanonicalStatistics:
-    def __init__(self):
-        self.paths = load_cfg()  # [cano, bc, uncle, fork][1=json]
+    def __init__(self, cfg_path="../env.conf"):
+        self.paths = load_cfg(cfg_path)  # [cano, bc, uncle, fork][1=json]
         self.blocks_by_height = dict()  # [height][hash] = block
         self.blocks_by_date = dict()  # [20190910] = list()
 
@@ -23,6 +23,7 @@ class CanonicalStatistics:
         self.differences = dict()  # [field][0=cur-total_mean, 1=cur-mean_height, 2=cur-mean_daily][0=cano, 1=non_cano] = list()
 
         self.overall_stats = dict()  # [field][min, max, std, mean]
+        self.organized_data = dict()  # [field][diff_mean_total, diff_mean_height, diff_mean_date][idx] = {"lower", "upper", "data", "cano_num"}
 
     def start(self):
         self.load_blocks()
@@ -51,6 +52,8 @@ class CanonicalStatistics:
 
         self.organize_differences(10)
 
+        self.print_stats()
+
     def load_blocks(self):
         # cano
         self.load_blocks_in_path(self.paths[0][1], True)
@@ -70,6 +73,8 @@ class CanonicalStatistics:
                     if is_canonical:
                         b.is_canonical = True
                         self.total_canonical += 1
+                    else:
+                        b.is_canonical = False
                     self.blocks_by_height[height][hash_value] = b
                     self.total_blocks += 1
                 else:
@@ -102,6 +107,7 @@ class CanonicalStatistics:
             value_total[field] = list()
             self.mean_daily[field] = dict()
             self.mean_height[field] = dict()
+            self.valid_count[field] = [0, 0]
 
         # mean daily
         print("calculating mean daily")
@@ -192,34 +198,40 @@ class CanonicalStatistics:
             field = field_and_func[0]
             get_func = field_and_func[1]
             differences = [[list(), list()], [list(), list()], [list(), list()]]
+            cano_num, non_cano_num = 0, 0
             for date, block_list in self.blocks_by_date.items():
                 for b in block_list:
+                    val = get_func(b)
+                    if val < 0:
+                        continue
                     if b.is_canonical:
-                        differences[0][0].append(get_func(b) - self.overall_stats[field]['mean'])
-                        if b.number in self.mean_height[field]:
-                            differences[1][0].append(get_func(b) - self.mean_height[field][b.number])
-                        if date in self.mean_daily[field]:
-                            differences[2][0].append(get_func(b) - self.mean_daily[field][date])
+                        cano_num += 1
+                        differences[0][0].append(val - self.overall_stats[field]['mean'])
+                        differences[1][0].append(val - self.mean_height[field][b.number])
+                        differences[2][0].append(val - self.mean_daily[field][date])
                     else:
-                        differences[0][1].append(get_func(b) - self.overall_stats[field]['mean'])
-                        if b.number in self.mean_height[field]:
-                            differences[1][1].append(get_func(b) - self.mean_height[field][b.number])
-                        if date in self.mean_daily[field]:
-                            differences[2][1].append(get_func(b) - self.mean_daily[field][date])
+                        non_cano_num += 1
+                        differences[0][1].append(val - self.overall_stats[field]['mean'])
+                        differences[1][1].append(val - self.mean_height[field][b.number])
+                        differences[2][1].append(val - self.mean_daily[field][date])
             self.differences[field] = differences
+            print(f"cal_differences, field={field}, cano_num={cano_num}, non_cano_num={non_cano_num}")
 
     def organize_differences(self, piece_num):
-        # [field][diff_mean_total, diff_mean_height, diff_mean_date][idx] = {"lower", "upper", "data", "cano_num"}
-        data = dict()
+        print(f"organizing differences")
         for field, differences in self.differences.items():
+            data = [list(), list(), list()]
             for i in range(len(differences)):
                 diff_list = differences[i]
-                data[field][i] = self.organize_diff(diff_list, piece_num)
+                data[i] = self.organize_diff(diff_list, piece_num)
+            self.organized_data[field] = data
 
     @staticmethod
     def organize_diff(diff_lists, piece_num):
-        upper_total = max(diff_lists)
-        lower_total = min(diff_lists)
+        # diff_lists[0=cano, 1=non_cano] = list()
+        diff_total = diff_lists[0] + diff_lists[1]
+        upper_total = int(max(diff_total))
+        lower_total = int(min(diff_total))
         middle_total = (upper_total + lower_total) / 2
 
         diff_in_pieces = list()  # {}
@@ -253,6 +265,19 @@ class CanonicalStatistics:
                             each['cano_num'] += is_canonical
                             break
         return diff_in_pieces
+
+    def print_stats(self):
+        diff_names = ["diff_mean_total", "diff_mean_height", "diff_mean_date"]
+        for field, diff_lists in self.organized_data.items():
+            print("")
+            for i in range(len(diff_lists)):
+                diff_list = diff_lists[i]
+                idx = -1
+                for piece in diff_list:
+                    idx += 1
+                    print(f"{field}[{diff_names[i]}][{idx}]:lower={piece['lower']}, upper={piece['upper']}, "
+                          f"len={len(piece['data'])}, cano_percent={round( piece['cano_num']/self.valid_count[field][1] * 100, 2)}%, "
+                          f"non_cano_percent={round((len(piece['data'])-piece['cano_num'])/(self.valid_count[field][0]-self.valid_count[field][1])*100, 2)}")
 
 
 if __name__ == '__main__':
