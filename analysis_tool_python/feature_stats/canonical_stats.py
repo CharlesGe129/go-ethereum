@@ -54,6 +54,7 @@ class CanonicalStatistics:
 
         self.print_stats()
 
+    # 从4个path中读取4种block
     def load_blocks(self):
         # cano
         self.load_blocks_in_path(self.paths[0][1], True)
@@ -62,6 +63,7 @@ class CanonicalStatistics:
         for paths in self.paths[1:]:
             self.load_blocks_in_path(paths[1], False)
 
+    # 读取路径下所有block json文件，并记录block是否为canonical
     def load_blocks_in_path(self, json_path, is_canonical):
         for filename in load_path(json_path):
             for b in load_json_file_yield_block(json_path, filename):
@@ -80,6 +82,7 @@ class CanonicalStatistics:
                 else:
                     self.blocks_by_height[height][hash_value].amend_missing_fields(b)
 
+    # 为每个block计算mine time和time diff
     def prepare_extra_fields(self):
         print("preparing extra fields")
         for height, blocks_height in self.blocks_by_height.items():
@@ -98,6 +101,7 @@ class CanonicalStatistics:
                 # time diff
                 b.timeDiff = str(int(b.timestamp) - time_diff_mean)
 
+    # 遍历所有block，先计算2种之后统计需要用到的mean(mean_date, mean_height), 再计算所有field的全局min, max, mean, std
     def cal_mean_and_overall(self, field_and_funcs):
         # field_and_funcs[field=0, get_field_func=1]
         print("calculating mean")
@@ -162,6 +166,7 @@ class CanonicalStatistics:
             stats["std"] = statistics.stdev(value_total[field])
             self.overall_stats[field] = stats
 
+    # 把所有block按照日期存成dict
     def get_blocks_daily(self):
         print("converting blocks by date")
         blocks_daily = dict()  # [20190910] = list()
@@ -174,6 +179,7 @@ class CanonicalStatistics:
                     blocks_daily[time_str] = [b]
         self.blocks_by_date = blocks_daily
 
+    # 计算miner相关的4个统计数据
     def cal_miner_stats(self):
         print("calculating miner stats")
         miner_cano_num = dict()
@@ -192,6 +198,7 @@ class CanonicalStatistics:
         self.miner_stats = [miner_cano_num, miner_cano_percent, miner_cano_total_cano_percent,
                             miner_cano_total_block_percent]
 
+    # 对每个字段，统计所有block的3种differences(cur-mean_total, cur-mean_date, cur-mean_height)
     def cal_differences(self, field_and_funcs):
         # field_and_funcs[field=0, get_field_func=1]
         for field_and_func in field_and_funcs:
@@ -217,6 +224,7 @@ class CanonicalStatistics:
             self.differences[field] = differences
             print(f"cal_differences, field={field}, cano_num={cano_num}, non_cano_num={non_cano_num}")
 
+    # 将所有的differences数据进行分片，默认10片
     def organize_differences(self, piece_num):
         print(f"organizing differences")
         for field, differences in self.differences.items():
@@ -226,6 +234,7 @@ class CanonicalStatistics:
                 data[i] = self.organize_diff(diff_list, piece_num)
             self.organized_data[field] = data
 
+    # 对1个list数据进行分片，先计算每一片的上限和下限，然后将所有数据放在不同的片中
     @staticmethod
     def organize_diff(diff_lists, piece_num):
         # diff_lists[0=cano, 1=non_cano] = list()
