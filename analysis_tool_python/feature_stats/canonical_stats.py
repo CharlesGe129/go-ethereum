@@ -1,3 +1,4 @@
+import pickle
 import statistics
 from analysis_tool_python.util.time_format import utc_unix_to_date
 from analysis_tool_python.util.cfg import load_cfg
@@ -275,6 +276,7 @@ class CanonicalStatistics:
                             break
         return diff_in_pieces
 
+    # 打印一些基本统计信息
     def print_stats(self):
         diff_names = ["diff_mean_total", "diff_mean_height", "diff_mean_date"]
         for field, diff_lists in self.organized_data.items():
@@ -288,8 +290,19 @@ class CanonicalStatistics:
                           f"len={len(piece['data'])}, cano_percent={round( piece['cano_num']/self.valid_count[field][1] * 100, 2)}%, "
                           f"non_cano_percent={round((len(piece['data'])-piece['cano_num'])/(self.valid_count[field][0]-self.valid_count[field][1])*100, 2)}")
 
+    # 保存成pickle。如果with_blocks=False，会清空所有blocks数据
+    def save_pickle(self, with_blocks):
+        if not with_blocks:
+            self.blocks_by_date = dict()
+            self.blocks_by_height = dict()
+            name = "cano_stats_no_blocks.p"
+        else:
+            name = "cano_stats.p"
+        pickle.dump(self, open(name, 'wb'))
+
 
 if __name__ == '__main__':
+    # c = pickle.load(open('test_diff_matched.p', 'rb'))
     c = CanonicalStatistics()
     c.start()
     for k, v in c.overall_stats.items():
