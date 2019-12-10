@@ -287,25 +287,56 @@ class CanonicalStatistics:
                 for piece in diff_list:
                     idx += 1
                     print(f"{field}[{diff_names[i]}][{idx}]:lower={piece['lower']}, upper={piece['upper']}, "
-                          f"len={len(piece['data'])}, cano_percent={round( piece['cano_num']/self.valid_count[field][1] * 100, 2)}%, "
-                          f"non_cano_percent={round((len(piece['data'])-piece['cano_num'])/(self.valid_count[field][0]-self.valid_count[field][1])*100, 2)}")
+                          f"len={len(piece['data'])}, cano_percent={round(piece['cano_num'] / self.valid_count[field][1] * 100, 2)}%, "
+                          f"non_cano_percent={round((len(piece['data']) - piece['cano_num']) / (self.valid_count[field][0] - self.valid_count[field][1]) * 100, 2)}")
 
     # 保存成pickle。如果with_blocks=False，会清空所有blocks数据
-    def save_pickle(self, with_blocks):
-        if not with_blocks:
-            self.blocks_by_date = dict()
-            self.blocks_by_height = dict()
-            name = "cano_stats_no_blocks.p"
-        else:
-            name = "cano_stats.p"
-        pickle.dump(self, open(name, 'wb'))
+    def save_pickle(self, with_blocks=False):
+        prefix = "cano_stats_"
+        pickle.dump(self.mean_daily, open(prefix + "mean_daily" + ".p", 'wb'))
+        pickle.dump(self.mean_height, open(prefix + "mean_height" + ".p", 'wb'))
+
+        pickle.dump(self.total_canonical, open(prefix + "total_canonical" + ".p", 'wb'))
+        pickle.dump(self.total_blocks, open(prefix + "total_blocks" + ".p", 'wb'))
+        pickle.dump(self.valid_count, open(prefix + "valid_count" + ".p", 'wb'))
+
+        pickle.dump(self.miner_stats, open(prefix + "miner_stats" + ".p", 'wb'))
+        pickle.dump(self.miner_canonical_num, open(prefix + "miner_canonical_num" + ".p", 'wb'))
+
+        pickle.dump(self.differences, open(prefix + "differences" + ".p", 'wb'))
+
+        pickle.dump(self.overall_stats, open(prefix + "overall_stats" + ".p", 'wb'))
+        pickle.dump(self.organized_data, open(prefix + "organized_data" + ".p", 'wb'))
+
+        if with_blocks:
+            pickle.dump(self.blocks_by_height, open(prefix + "blocks_by_height" + ".p", 'wb'))
+            pickle.dump(self.blocks_by_date, open(prefix + "blocks_by_date" + ".p", 'wb'))
+
+    def load_pickle(self):
+        prefix = "cano_stats_"
+        self.mean_daily = pickle.load(open(prefix + "mean_daily" + ".p", 'wb'))
+        self.mean_height = pickle.load(open(prefix + "mean_height" + ".p", 'wb'))
+
+        self.total_canonical = pickle.load(open(prefix + "total_canonical" + ".p", 'wb'))
+        self.total_blocks = pickle.load(open(prefix + "total_blocks" + ".p", 'wb'))
+        self.valid_count = pickle.load(open(prefix + "valid_count" + ".p", 'wb'))
+
+        self.miner_stats = pickle.load(open(prefix + "miner_stats" + ".p", 'wb'))
+        self.miner_canonical_num = pickle.load(open(prefix + "miner_canonical_num" + ".p", 'wb'))
+
+        self.differences = pickle.load(open(prefix + "differences" + ".p", 'wb'))
+
+        self.overall_stats = pickle.load(open(prefix + "overall_stats" + ".p", 'wb'))
+        self.organized_data = pickle.load(open(prefix + "organized_data" + ".p", 'wb'))
+
+        if os.path.exists(prefix + "blocks_by_height.p"):
+            pickle.dump(self.blocks_by_height, open(prefix + "blocks_by_height" + ".p", 'wb'))
+        if os.path.exists(prefix + "blocks_by_date.p"):
+            pickle.dump(self.blocks_by_date, open(prefix + "blocks_by_date" + ".p", 'wb'))
 
 
 if __name__ == '__main__':
     # c = pickle.load(open('test_diff_matched.p', 'rb'))
     c = CanonicalStatistics()
     c.start()
-    for k, v in c.overall_stats.items():
-        print(k)
-        print(v)
-    print(123)
+    c.save_pickle()
