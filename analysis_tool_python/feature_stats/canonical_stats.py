@@ -314,25 +314,25 @@ class CanonicalStatistics:
 
     def load_pickle(self):
         prefix = "cano_stats_"
-        self.mean_daily = pickle.load(open(prefix + "mean_daily" + ".p", 'wb'))
-        self.mean_height = pickle.load(open(prefix + "mean_height" + ".p", 'wb'))
+        self.mean_daily = pickle.load(open(prefix + "mean_daily" + ".p", 'rb'))
+        self.mean_height = pickle.load(open(prefix + "mean_height" + ".p", 'rb'))
 
-        self.total_canonical = pickle.load(open(prefix + "total_canonical" + ".p", 'wb'))
-        self.total_blocks = pickle.load(open(prefix + "total_blocks" + ".p", 'wb'))
-        self.valid_count = pickle.load(open(prefix + "valid_count" + ".p", 'wb'))
+        self.total_canonical = pickle.load(open(prefix + "total_canonical" + ".p", 'rb'))
+        self.total_blocks = pickle.load(open(prefix + "total_blocks" + ".p", 'rb'))
+        self.valid_count = pickle.load(open(prefix + "valid_count" + ".p", 'rb'))
 
-        self.miner_stats = pickle.load(open(prefix + "miner_stats" + ".p", 'wb'))
-        self.miner_canonical_num = pickle.load(open(prefix + "miner_canonical_num" + ".p", 'wb'))
+        self.miner_stats = pickle.load(open(prefix + "miner_stats" + ".p", 'rb'))
+        self.miner_canonical_num = pickle.load(open(prefix + "miner_canonical_num" + ".p", 'rb'))
 
-        self.differences = pickle.load(open(prefix + "differences" + ".p", 'wb'))
+        self.differences = pickle.load(open(prefix + "differences" + ".p", 'rb'))
 
-        self.overall_stats = pickle.load(open(prefix + "overall_stats" + ".p", 'wb'))
-        self.organized_data = pickle.load(open(prefix + "organized_data" + ".p", 'wb'))
+        self.overall_stats = pickle.load(open(prefix + "overall_stats" + ".p", 'rb'))
+        self.organized_data = pickle.load(open(prefix + "organized_data" + ".p", 'rb'))
 
         if os.path.exists(prefix + "blocks_by_height.p"):
-            pickle.dump(self.blocks_by_height, open(prefix + "blocks_by_height" + ".p", 'wb'))
+            pickle.dump(self.blocks_by_height, open(prefix + "blocks_by_height" + ".p", 'rb'))
         if os.path.exists(prefix + "blocks_by_date.p"):
-            pickle.dump(self.blocks_by_date, open(prefix + "blocks_by_date" + ".p", 'wb'))
+            pickle.dump(self.blocks_by_date, open(prefix + "blocks_by_date" + ".p", 'rb'))
 
 
 if __name__ == '__main__':
@@ -340,3 +340,4 @@ if __name__ == '__main__':
     c = CanonicalStatistics()
     c.start()
     c.save_pickle()
+    # c.load_pickle()
