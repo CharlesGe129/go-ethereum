@@ -240,8 +240,8 @@ class CanonicalStatistics:
     def organize_diff(diff_lists, piece_num):
         # diff_lists[0=cano, 1=non_cano] = list()
         diff_total = diff_lists[0] + diff_lists[1]
-        upper_total = int(max(diff_total)) + 1
-        lower_total = int(min(diff_total))
+        upper_total = max(diff_total)
+        lower_total = min(diff_total)
         middle_total = (upper_total + lower_total) / 2
 
         diff_in_pieces = list()  # {}
