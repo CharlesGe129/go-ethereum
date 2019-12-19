@@ -1,4 +1,4 @@
-// Copyright 2018 The go-ethereum Authors
+// Copyright 2019 The go-ethereum Authors
 // This file is part of go-ethereum.
 //
 // go-ethereum is free software: you can redistribute it and/or modify
@@ -28,19 +28,6 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-const (
-	commandHelperTemplate = `{{.Name}}{{if .Subcommands}} command{{end}}{{if .Flags}} [command options]{{end}} [arguments...]
-{{if .Description}}{{.Description}}
-{{end}}{{if .Subcommands}}
-SUBCOMMANDS:
-	{{range .Subcommands}}{{.Name}}{{with .ShortName}}, {{.}}{{end}}{{ "\t" }}{{.Usage}}
-	{{end}}{{end}}{{if .Flags}}
-OPTIONS:
-{{range $.Flags}}{{"\t"}}{{.}}
-{{end}}
-{{end}}`
-)
-
 var (
 	// Git SHA1 commit hash of the release (set via linker flags)
 	gitCommit = ""
@@ -59,12 +46,9 @@ func init() {
 	}
 	app.Flags = []cli.Flag{
 		oracleFlag,
-		keyFileFlag,
 		nodeURLFlag,
-		clefURLFlag,
-		utils.PasswordFileFlag,
 	}
-	cli.CommandHelpTemplate = commandHelperTemplate
+	cli.CommandHelpTemplate = utils.OriginCommandHelpTemplate
 }
 
 // Commonly used command line flags.
@@ -85,10 +69,6 @@ var (
 		Name:  "threshold",
 		Usage: "Minimal number of signatures required to approve a checkpoint",
 	}
-	keyFileFlag = cli.StringFlag{
-		Name:  "keyfile",
-		Usage: "The private key file (keyfile signature is not recommended)",
-	}
 	nodeURLFlag = cli.StringFlag{
 		Name:  "rpc",
 		Value: "http://localhost:8545",
@@ -101,7 +81,7 @@ var (
 	}
 	signerFlag = cli.StringFlag{
 		Name:  "signer",
-		Usage: "Signer address for clef mode signing",
+		Usage: "Signer address for clef signing",
 	}
 	signersFlag = cli.StringFlag{
 		Name:  "signers",

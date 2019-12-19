@@ -41,9 +41,8 @@ var (
 
 const (
 	// Timeouts
-	tcpKeepAliveInterval = 30 * time.Second
-	defaultDialTimeout   = 10 * time.Second // used if context has no deadline
-	subscribeTimeout     = 5 * time.Second  // overall timeout eth_subscribe, rpc_modules calls
+	defaultDialTimeout = 10 * time.Second // used if context has no deadline
+	subscribeTimeout   = 5 * time.Second  // overall timeout eth_subscribe, rpc_modules calls
 )
 
 const (
@@ -118,7 +117,7 @@ func (c *Client) newClientConn(conn ServerCodec) *clientConn {
 
 func (cc *clientConn) close(err error, inflightReq *requestOp) {
 	cc.handler.close(err, inflightReq)
-	cc.codec.Close()
+	cc.codec.close()
 }
 
 type readOp struct {
@@ -485,7 +484,7 @@ func (c *Client) write(ctx context.Context, msg interface{}) error {
 			return err
 		}
 	}
-	err := c.writeConn.Write(ctx, msg)
+	err := c.writeConn.writeJSON(ctx, msg)
 	if err != nil {
 		c.writeConn = nil
 	}
@@ -512,7 +511,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 		c.writeConn = newconn
 		return nil
 	case <-c.didClose:
-		newconn.Close()
+		newconn.close()
 		return ErrClientQuit
 	}
 }
@@ -559,7 +558,7 @@ func (c *Client) dispatch(codec ServerCodec) {
 
 		// Reconnect:
 		case newcodec := <-c.reconnected:
-			log.Debug("RPC client reconnected", "reading", reading, "conn", newcodec.RemoteAddr())
+			log.Debug("RPC client reconnected", "reading", reading, "conn", newcodec.remoteAddr())
 			if reading {
 				// Wait for the previous read loop to exit. This is a rare case which
 				// happens if this loop isn't notified in time after the connection breaks.
@@ -613,9 +612,9 @@ func (c *Client) drainRead() {
 // read decodes RPC messages from a codec, feeding them into dispatch.
 func (c *Client) read(codec ServerCodec) {
 	for {
-		msgs, batch, err := codec.Read()
+		msgs, batch, err := codec.readBatch()
 		if _, ok := err.(*json.SyntaxError); ok {
-			codec.Write(context.Background(), errorMessage(&parseError{err.Error()}))
+			codec.writeJSON(context.Background(), errorMessage(&parseError{err.Error()}))
 		}
 		if err != nil {
 			c.readErr <- err

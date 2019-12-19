@@ -38,6 +38,7 @@ func TestSimulatedBackend(t *testing.T) {
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
 
 	sim := backends.NewSimulatedBackend(genAlloc, gasLimit)
+	defer sim.Close()
 
 	// should return an error if the tx is not found
 	txHash := common.HexToHash("2")
@@ -71,7 +72,7 @@ func TestSimulatedBackend(t *testing.T) {
 	}
 
 	sim.Commit()
-	tx, isPending, err = sim.TransactionByHash(context.Background(), txHash)
+	_, isPending, err = sim.TransactionByHash(context.Background(), txHash)
 	if err != nil {
 		t.Fatalf("error getting transaction with hash: %v", txHash.String())
 	}

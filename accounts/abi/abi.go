@@ -70,14 +70,11 @@ func (abi ABI) Pack(name string, args ...interface{}) ([]byte, error) {
 		return nil, err
 	}
 	// Pack up the method ID too if not a constructor and return
-	return append(method.Id(), arguments...), nil
+	return append(method.ID(), arguments...), nil
 }
 
 // Unpack output in v according to the abi specification
 func (abi ABI) Unpack(v interface{}, name string, data []byte) (err error) {
-	if len(data) == 0 {
-		return fmt.Errorf("abi: unmarshalling empty output")
-	}
 	// since there can't be naming collisions with contracts and events,
 	// we need to decide whether we're calling a method or an event
 	if method, ok := abi.Methods[name]; ok {
@@ -94,9 +91,6 @@ func (abi ABI) Unpack(v interface{}, name string, data []byte) (err error) {
 
 // UnpackIntoMap unpacks a log into the provided map[string]interface{}
 func (abi ABI) UnpackIntoMap(v map[string]interface{}, name string, data []byte) (err error) {
-	if len(data) == 0 {
-		return fmt.Errorf("abi: unmarshalling empty output")
-	}
 	// since there can't be naming collisions with contracts and events,
 	// we need to decide whether we're calling a method or an event
 	if method, ok := abi.Methods[name]; ok {
@@ -121,11 +115,9 @@ func (abi *ABI) UnmarshalJSON(data []byte) error {
 		Inputs    []Argument
 		Outputs   []Argument
 	}
-
 	if err := json.Unmarshal(data, &fields); err != nil {
 		return err
 	}
-
 	abi.Methods = make(map[string]Method)
 	abi.Events = make(map[string]Event)
 	for _, field := range fields {
@@ -136,15 +128,29 @@ func (abi *ABI) UnmarshalJSON(data []byte) error {
 			}
 		// empty defaults to function according to the abi spec
 		case "function", "":
-			abi.Methods[field.Name] = Method{
-				Name:    field.Name,
+			name := field.Name
+			_, ok := abi.Methods[name]
+			for idx := 0; ok; idx++ {
+				name = fmt.Sprintf("%s%d", field.Name, idx)
+				_, ok = abi.Methods[name]
+			}
+			abi.Methods[name] = Method{
+				Name:    name,
+				RawName: field.Name,
 				Const:   field.Constant,
 				Inputs:  field.Inputs,
 				Outputs: field.Outputs,
 			}
 		case "event":
-			abi.Events[field.Name] = Event{
-				Name:      field.Name,
+			name := field.Name
+			_, ok := abi.Events[name]
+			for idx := 0; ok; idx++ {
+				name = fmt.Sprintf("%s%d", field.Name, idx)
+				_, ok = abi.Events[name]
+			}
+			abi.Events[name] = Event{
+				Name:      name,
+				RawName:   field.Name,
 				Anonymous: field.Anonymous,
 				Inputs:    field.Inputs,
 			}
@@ -161,7 +167,7 @@ func (abi *ABI) MethodById(sigdata []byte) (*Method, error) {
 		return nil, fmt.Errorf("data too short (%d bytes) for abi method lookup", len(sigdata))
 	}
 	for _, method := range abi.Methods {
-		if bytes.Equal(method.Id(), sigdata[:4]) {
+		if bytes.Equal(method.ID(), sigdata[:4]) {
 			return &method, nil
 		}
 	}
@@ -172,7 +178,7 @@ func (abi *ABI) MethodById(sigdata []byte) (*Method, error) {
 // ABI and returns nil if none found.
 func (abi *ABI) EventByID(topic common.Hash) (*Event, error) {
 	for _, event := range abi.Events {
-		if bytes.Equal(event.Id().Bytes(), topic.Bytes()) {
+		if bytes.Equal(event.ID().Bytes(), topic.Bytes()) {
 			return &event, nil
 		}
 	}

@@ -86,7 +86,7 @@ type RetestethEthAPI interface {
 }
 
 type RetestethDebugAPI interface {
-	AccountRangeAt(ctx context.Context,
+	AccountRange(ctx context.Context,
 		blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 		addressHash *math.HexOrDecimal256, maxResults uint64,
 	) (AccountRangeResult, error)
@@ -132,6 +132,7 @@ type CParamsParams struct {
 	ByzantiumForkBlock         *math.HexOrDecimal64  `json:"byzantiumForkBlock"`
 	ConstantinopleForkBlock    *math.HexOrDecimal64  `json:"constantinopleForkBlock"`
 	ConstantinopleFixForkBlock *math.HexOrDecimal64  `json:"constantinopleFixForkBlock"`
+	IstanbulBlock              *math.HexOrDecimal64  `json:"istanbulForkBlock"`
 	ChainID                    *math.HexOrDecimal256 `json:"chainID"`
 	MaximumExtraDataSize       math.HexOrDecimal64   `json:"maximumExtraDataSize"`
 	TieBreakingGas             bool                  `json:"tieBreakingGas"`
@@ -319,6 +320,7 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 		byzantiumBlock      *big.Int
 		constantinopleBlock *big.Int
 		petersburgBlock     *big.Int
+		istanbulBlock       *big.Int
 	)
 	if chainParams.Params.HomesteadForkBlock != nil {
 		homesteadBlock = big.NewInt(int64(*chainParams.Params.HomesteadForkBlock))
@@ -345,6 +347,10 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 	if constantinopleBlock != nil && petersburgBlock == nil {
 		petersburgBlock = big.NewInt(100000000000)
 	}
+	if chainParams.Params.IstanbulBlock != nil {
+		istanbulBlock = big.NewInt(int64(*chainParams.Params.IstanbulBlock))
+	}
+
 	genesis := &core.Genesis{
 		Config: &params.ChainConfig{
 			ChainID:             chainId,
@@ -357,6 +363,7 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 			ByzantiumBlock:      byzantiumBlock,
 			ConstantinopleBlock: constantinopleBlock,
 			PetersburgBlock:     petersburgBlock,
+			IstanbulBlock:       istanbulBlock,
 		},
 		Nonce:      uint64(chainParams.Genesis.Nonce),
 		Timestamp:  uint64(chainParams.Genesis.Timestamp),
@@ -488,7 +495,6 @@ func (api *RetestethAPI) mineBlock() error {
 	txCount := 0
 	var txs []*types.Transaction
 	var receipts []*types.Receipt
-	var coalescedLogs []*types.Log
 	var blockFull = gasPool.Gas() < params.TxGas
 	for address := range api.txSenders {
 		if blockFull {
@@ -501,7 +507,7 @@ func (api *RetestethAPI) mineBlock() error {
 				statedb.Prepare(tx.Hash(), common.Hash{}, txCount)
 				snap := statedb.Snapshot()
 
-				receipt, _, err := core.ApplyTransaction(
+				receipt, err := core.ApplyTransaction(
 					api.chainConfig,
 					api.blockchain,
 					&api.author,
@@ -515,7 +521,6 @@ func (api *RetestethAPI) mineBlock() error {
 				}
 				txs = append(txs, tx)
 				receipts = append(receipts, receipt)
-				coalescedLogs = append(coalescedLogs, receipt.Logs...)
 				delete(m, nonce)
 				if len(m) == 0 {
 					// Last tx for the sender
@@ -533,6 +538,9 @@ func (api *RetestethAPI) mineBlock() error {
 		}
 	}
 	block, err := api.engine.FinalizeAndAssemble(api.blockchain, header, statedb, txs, []*types.Header{}, receipts)
+	if err != nil {
+		return err
+	}
 	return api.importBlock(block)
 }
 
@@ -604,7 +612,7 @@ func (api *RetestethAPI) GetBlockByNumber(ctx context.Context, blockNr math.HexO
 	return nil, fmt.Errorf("block %d not found", blockNr)
 }
 
-func (api *RetestethAPI) AccountRangeAt(ctx context.Context,
+func (api *RetestethAPI) AccountRange(ctx context.Context,
 	blockHashOrNumber *math.HexOrDecimal256, txIndex uint64,
 	addressHash *math.HexOrDecimal256, maxResults uint64,
 ) (AccountRangeResult, error) {
@@ -669,12 +677,9 @@ func (api *RetestethAPI) AccountRangeAt(ctx context.Context,
 	}
 	it := trie.NewIterator(accountTrie.NodeIterator(common.BigToHash((*big.Int)(addressHash)).Bytes()))
 	result := AccountRangeResult{AddressMap: make(map[common.Hash]common.Address)}
-	for i := 0; /*i < int(maxResults) && */ it.Next(); i++ {
+	for i := 0; i < int(maxResults) && it.Next(); i++ {
 		if preimage := accountTrie.GetKey(it.Key); preimage != nil {
 			result.AddressMap[common.BytesToHash(it.Key)] = common.BytesToAddress(preimage)
-			//fmt.Printf("%x: %x\n", it.Key, preimage)
-		} else {
-			//fmt.Printf("could not find preimage for %x\n", it.Key)
 		}
 	}
 	//fmt.Printf("Number of entries returned: %d\n", len(result.AddressMap))
@@ -765,10 +770,10 @@ func (api *RetestethAPI) StorageRangeAt(ctx context.Context,
 			}
 			// Ensure any modifications are committed to the state
 			// Only delete empty objects if EIP158/161 (a.k.a Spurious Dragon) is in effect
-			root = statedb.IntermediateRoot(vmenv.ChainConfig().IsEIP158(block.Number()))
+			_ = statedb.IntermediateRoot(vmenv.ChainConfig().IsEIP158(block.Number()))
 			if idx == int(txIndex) {
 				// This is to make sure root can be opened by OpenTrie
-				root, err = statedb.Commit(vmenv.ChainConfig().IsEIP158(block.Number()))
+				_, err = statedb.Commit(vmenv.ChainConfig().IsEIP158(block.Number()))
 				if err != nil {
 					return StorageRangeResult{}, err
 				}
@@ -798,9 +803,6 @@ func (api *RetestethAPI) StorageRangeAt(ctx context.Context,
 				Key:   string(ks),
 				Value: string(vs),
 			}
-			//fmt.Printf("Key: %s, Value: %s\n", ks, vs)
-		} else {
-			//fmt.Printf("Did not find preimage for %x\n", it.Key)
 		}
 	}
 	if it.Next() {
@@ -829,7 +831,7 @@ func retesteth(ctx *cli.Context) error {
 	log.Info("Welcome to retesteth!")
 	// register signer API with server
 	var (
-		extapiURL = "n/a"
+		extapiURL string
 	)
 	apiImpl := &RetestethAPI{}
 	var testApi RetestethTestAPI = apiImpl
@@ -879,7 +881,7 @@ func retesteth(ctx *cli.Context) error {
 		log.Info("HTTP endpoint closed", "url", httpEndpoint)
 	}()
 
-	abortChan := make(chan os.Signal)
+	abortChan := make(chan os.Signal, 11)
 	signal.Notify(abortChan, os.Interrupt)
 
 	sig := <-abortChan
