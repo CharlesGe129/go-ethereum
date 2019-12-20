@@ -15,7 +15,7 @@ var (
 func GetTxQueue() *TxQueue {
 	txOnce.Do(func() {
 		txQueue = &TxQueue{
-			txs: make(chan TxWithAddr, 100),
+			txs: make(chan TxWithAddr, 1024),
 		}
 		go func() {
 			for {

@@ -15,7 +15,7 @@ var (
 func GetBlockQueue() *BlockQueue {
 	blockOnce.Do(func() {
 		blockQueue = &BlockQueue{
-			blocks: make(chan BlockWithSigner, 10),
+			blocks: make(chan BlockWithSigner, 128),
 		}
 		go func() {
 			for {

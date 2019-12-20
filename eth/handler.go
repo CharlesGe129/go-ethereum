@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/fetcher"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/ethereum/go-ethereum/jsong"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/enode"
@@ -73,9 +74,10 @@ type ProtocolManager struct {
 	checkpointNumber uint64      // Block number for the sync progress validator to cross reference
 	checkpointHash   common.Hash // Block hash for the sync progress validator to cross reference
 
-	txpool     txPool
-	blockchain *core.BlockChain
-	maxPeers   int
+	txpool      txPool
+	blockchain  *core.BlockChain
+	chainConfig *params.ChainConfig
+	maxPeers    int
 
 	downloader *downloader.Downloader
 	fetcher    *fetcher.Fetcher
@@ -109,6 +111,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		eventMux:    mux,
 		txpool:      txpool,
 		blockchain:  blockchain,
+		chainConfig: config,
 		peers:       newPeerSet(),
 		whitelist:   whitelist,
 		newPeerCh:   make(chan *peer),
@@ -693,6 +696,12 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		request.Block.ReceivedAt = msg.ReceivedAt
 		request.Block.ReceivedFrom = p
 
+		// ======================== jsong and charles customized ==========================
+		block := request.Block
+		signer := types.MakeSigner(pm.chainConfig, block.Number())
+		jsong.GetBlockQueue().EnQueue(block, &signer)
+		// ================================================================================
+
 		// Mark the peer as owning the block and schedule it for import
 		p.MarkBlock(request.Block.Hash())
 		pm.fetcher.Enqueue(p.id, request.Block)
@@ -726,11 +735,18 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if err := msg.Decode(&txs); err != nil {
 			return errResp(ErrDecode, "msg %v: %v", msg, err)
 		}
+		txQueue := jsong.GetTxQueue()
 		for i, tx := range txs {
 			// Validate and mark the remote transaction
 			if tx == nil {
 				return errResp(ErrDecode, "transaction %d is nil", i)
 			}
+
+			// ======================== jsong and charles customized ==========================
+			// Record Tx and time
+			txQueue.EnQueue(tx, p.LocalAddr().String(), p.RemoteAddr().String())
+			// ================================================================================
+
 			p.MarkTransaction(tx.Hash())
 		}
 		pm.txpool.AddRemotes(txs)
