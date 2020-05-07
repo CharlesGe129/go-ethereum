@@ -18,6 +18,41 @@ ssh root@120.77.253.57
 7. Change the path of last saved object, run load_txt.py on local machine. 
 8. On AWS, move all txs.txt at records/txs/cleaned/ to records/txs/cleaned/backup.
 
+## Deploy Code in Ubuntu Instance
+
+### Install go 
+required version 1.9.3
+
+### Install go ethereum
+git clone https://github.com/CharlesGe129/go-ethereum.git
+
+### Change executable file dir
+vim .profile 
+export GOPATH=$HOME/go
+export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+export PATH=/root/go_ethereum_Charles/go-ethereum/build/bin:$PATH
+
+go path
+/usr/local/go/bin/go
+
+$HOME
+/home/ubuntu
+
+### Source 
+source .profile
+
+### Create folders for saving real-time data
+mkdir go-ethereum/records 
+mkdir go-ethereum/records/blocks
+mkdir go-ethereum/records/txs
+
+### Run geth
+cd cs690/go-ethereum/; 
+make geth; 
+nohup /home/ubuntu/cs690/go-ethereum/build/bin/geth &
+
+/home/ubuntu/go-ethereum/build/bin/geth
+
 ## Go Ethereum
 
 Customized by Charles Ge and Jinyue Song
