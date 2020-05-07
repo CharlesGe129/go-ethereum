@@ -21,7 +21,7 @@ ssh root@120.77.253.57
 ## Deploy Code in Ubuntu Instance
 
 ### Install go 
-required version 1.9.3
+required version 1.13
 
 ### Install go ethereum
 git clone https://github.com/CharlesGe129/go-ethereum.git
@@ -47,11 +47,9 @@ mkdir go-ethereum/records/blocks
 mkdir go-ethereum/records/txs
 
 ### Run geth
-cd cs690/go-ethereum/; 
+cd go-ethereum/; 
 make geth; 
-nohup /home/ubuntu/cs690/go-ethereum/build/bin/geth &
-
-/home/ubuntu/go-ethereum/build/bin/geth
+nohup ./build/bin/geth &
 
 ## Go Ethereum
 
