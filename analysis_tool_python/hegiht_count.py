@@ -8,8 +8,8 @@ class HeightCounter():
         self.heights = dict()
 
     def start(self):
-        path = '../../../data/'
-        for folder in ['aws/', 'ali/']:
+        path = '../data/'
+        for folder in ['aws_block_tmp/', 'ali/']:
             files = [each for each in load_file.load_path(path + folder)]
             idx = 0
             total = len(files)
@@ -18,7 +18,7 @@ class HeightCounter():
                 print(f"current progress: {idx / total * 100}%")
                 if not filename.endswith('.txt'):
                     continue
-                for line in load_file.load_file_yield_lines(path, filename):
+                for line in load_file.load_file_yield_lines(path+folder, filename):
                     if line.startswith("tx"):
                         continue
                     self.load_block_line(line)
@@ -30,7 +30,13 @@ class HeightCounter():
         if start_idx == 0:
             self.wrong_lines.append(line)
         raw = line[start_idx:].strip()
-        data = json.loads(raw)
+        try:
+            data = json.loads(raw)
+        except Exception:
+            print("line: ", line)
+            print("raw: ", raw)
+            print(Exception)
+
 
         b_height = data['number']
         b_hash = data['hash']
